@@ -17,14 +17,18 @@ public class ISU {
      * @param args the command line arguments
      */
     private static void createAndShowGUI() {
+
+
         JFrame frame = new JFrame("Rocket Simulation");
+
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        
+
         int setX = 700, setY = 700; //Flexible window dimensions for balls 
         Movement mvmnt = new Movement(setX, setY);
         frame.add(mvmnt);
         frame.setSize(setX, setY);
         frame.setVisible(true);
+
     }
 
     public static void main(String[] args) {
@@ -33,6 +37,7 @@ public class ISU {
                 createAndShowGUI();
             }
         });
+
     }
 
 }

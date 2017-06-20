@@ -5,14 +5,100 @@
  */
 package ISU;
 
-/**
- *
- * @author Someone
- */
-public class Calculations {
+import java.util.Random;
+import javax.swing.JFrame;
+
+class Calculations {
+
+    long pRadius = 1 * 500000, pScale = pRadius * 10000 * 2;
+    double xPos = 0;                        //used to be int/long
+    double yPos = pRadius * 1000;            //used to be int/long
+    double aThrottle = 0, aSpeed = 0, angle = 0;
+    double rXSpeed = 0, rYSpeed = 0, sThrottle = 0;
+    double dx = 0, dy = 0;
+    long drag = 1000;
+    long pXpos = 0, pYpos = 0;
+    double pGravity = 9.81;
+    double pAHL = 70000;        //This is the atmospheric height limit where there would be no more atmosphere 
+    double[][] stars = new double[50][3];
+    double altitudeToPlanetCenter;
+    double rMass = 30000;
+    long rThrust = 1500 * 1000;
+    double tempXF = 0, tempYF = 0;
+    double xAccel = 0, yAccel = 0;
+//    boolean[] isPressed = new boolean[4];
+    double[] passThrough1 = new double[8];
+
+    Random rand = new Random(); //Random number generator
+    double zScale = 0.3;
+    OutputWindow frame2 = new OutputWindow();
 
     public Calculations() {
 
+        for (int i = 0; i < stars.length; i++) {
+            stars[i][0] = rand.nextDouble() * 800;
+            stars[i][1] = rand.nextDouble() * 800;
+            stars[i][2] = (rand.nextInt(4) + 2);
+        }
+
+        frame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame2.setVisible(true);
+        frame2.setResizable(true);
+        frame2.setSize(600, 300);
+        frame2.setLocation(700, 50);
+
+//        frame2.toOutputWindow(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    }
+
+//    public double[] positionUpdate() {
+    public double[] positionUpdate(double[] passThrough) {
+
+        passThrough1 = passThrough;
+
+        controls();
+
+        drag = 0;  //temporary measure 
+
+        calcD();
+
+        tempXF = (calcT() * trigAngle("s", angle)) - (calcG() * trigAngle("s", xPos, yPos));
+        tempYF = (calcT() * trigAngle("c", angle)) - (calcG() * trigAngle("c", xPos, yPos));
+
+        xAccel = (tempXF / rMass);
+        yAccel = (tempYF / rMass);
+
+        altitudeToPlanetCenter = (Math.sqrt(Math.pow(xPos / 1000, 2) + Math.pow(yPos / 1000, 2)));
+
+        if (altitudeToPlanetCenter < pRadius) {
+            if (xPos != 0) {
+                tempXF = pRadius * Math.sin(Math.toRadians(Math.atan(yPos / xPos)));
+//                tempYF = pRadius * Math.cos(Math.toRadians(Math.atan(yPos / xPos)));
+                tempYF = pRadius;
+            } else {
+                tempXF = 0;
+                tempYF = calcG();
+            }
+//            System.out.println("Under planet tempY = " + tempYF);
+//            System.out.println(1 * Math.cos(Math.toRadians(Math.atan(yPos / xPos))));
+            xPos += (tempXF);
+            yPos += (tempYF);
+
+        } else {
+            rXSpeed += xAccel;
+            rYSpeed += yAccel;
+
+            xPos += rXSpeed / 100;
+            yPos += rYSpeed / 100;
+        }
+        angle += aSpeed;
+
+        frame2.toOutputWindow(calcT(), calcG(), trigAngle("c", xPos, yPos), tempXF, tempYF, xAccel, yAccel, altitudeToPlanetCenter, xPos, yPos, angle, trigAngle("c", angle));
+//        System.out.println("Thrust Force: " + calcT() + ", \tGravity force " + calcG() + ", \t Gravity cos: " + trigAngle("c", xPos, yPos));
+//        System.out.println("X component = " + tempXF + ", \tY component = " + tempYF);
+//        System.out.println("xAccel: " + xAccel + ",  \t\tyAccel: " + yAccel);
+//        System.out.println("Altitude = " + altitudeToPlanetCenter);
+//        System.out.println("Rocket Position: " + xPos / 1000 + ", " + yPos / 1000 + "\tshipAngle" + angle + ", \t rCosValue" + trigAngle("c", angle));
+        return new double[]{xPos, yPos, calcD(), altitudeToPlanetCenter};
     }
 
     public static double trigAngle(String sinORcos, double xPos, double yPos) {
@@ -42,19 +128,18 @@ public class Calculations {
         return 0;
     }
 
-    private static double calcG() {
+    private double calcG() {
 
-//        if (altitudeToPlanetCenter <= pDiameter) {
-//            return 0;
-//        } else {
-////            System.out.println("altitude: " + altitudeToPlanetCenter + ", pDiameter = " + pDiameter);
-//            return rMass * (pGravity / Math.pow(altitudeToPlanetCenter / pDiameter, 2));
-//        }
-        return 0;
+        if (altitudeToPlanetCenter <= pRadius) {
+            return 0;
+        } else {
+//            System.out.println("altitude: " + altitudeToPlanetCenter + ", pDiameter = " + pDiameter);
+            return rMass * (pGravity / Math.pow(altitudeToPlanetCenter / pRadius, 2));
+        }
 
     }
 
-    private static double calcD() {
+    private double calcD() {
 //        if (rSpeed > 0) {
 //            rSpeed += -(drag);
 //        } else if (rSpeed < 0) {
@@ -68,14 +153,55 @@ public class Calculations {
 //        } else if (aSpeed < 0) {
 //            aSpeed -= (drag / 5);
 //        }
-//        angle += aSpeed / 5;
-        return 0;
+//System.out.println("sdfdsf");
+//        System.out.println(aSpeed);
+        return angle;
     }
 
-    private static double calcT() {
+    private double calcT() {
+        return sThrottle * rThrust; //The total thrust would be limited by the throttle as a percentage of the thrust.  
+    }
 
-        return 0;
-//        return sThrottle * rThrust; //The total thrust would be limited by the throttle as a percentage of the thrust. 
+//    public void controls(double[] passThrough) {
+    public void controls() {
 
+        if (passThrough1[6] == 1) {
+            System.out.println("1Left");
+
+            if (aSpeed > -10) {
+                aSpeed -= 0.01;
+
+            }
+            System.out.println(aSpeed);
+
+        }
+
+        if (passThrough1[7] == 1) {
+            System.out.println("1Right");
+
+            if (aSpeed < 10) {
+                aSpeed += 0.01;
+            }
+
+        }
+
+        if (passThrough1[4] == 1) {
+            System.out.println("1Up");
+            sThrottle += 0.001;
+            if (sThrottle > 1) {
+                sThrottle = 1;
+            }
+        }
+
+        if (passThrough1[5] == 1) {
+            System.out.println("1Down");
+            sThrottle -= 0.001;
+            if (sThrottle < 0) {
+                sThrottle = 0;
+            }
+
+        }
+
+//        return new double[]{aSpeed, sThrottle};
     }
 }
