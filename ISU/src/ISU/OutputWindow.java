@@ -30,6 +30,7 @@ public class OutputWindow extends javax.swing.JFrame {
         jTextField4 = new javax.swing.JTextField();
         jTextField5 = new javax.swing.JTextField();
         jTextField6 = new javax.swing.JTextField();
+        jTextField7 = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -55,6 +56,8 @@ public class OutputWindow extends javax.swing.JFrame {
 
         jTextField6.setEditable(false);
 
+        jTextField7.setEditable(false);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -67,7 +70,8 @@ public class OutputWindow extends javax.swing.JFrame {
                     .addComponent(jTextField3)
                     .addComponent(jTextField4)
                     .addComponent(jTextField5)
-                    .addComponent(jTextField6))
+                    .addComponent(jTextField6)
+                    .addComponent(jTextField7, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -84,7 +88,9 @@ public class OutputWindow extends javax.swing.JFrame {
                 .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jTextField6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 150, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jTextField7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 124, Short.MAX_VALUE))
         );
 
         pack();
@@ -133,15 +139,16 @@ public class OutputWindow extends javax.swing.JFrame {
         });
     }
 
-    public void toOutputWindow(double calcT, double calcG, double trigAngle1, double tempXF, double tempYF, double xAccel, double yAccel, double altitudeToPlanetCenter, double xPos, double yPos, double angle, double trigAngle2) {
+    public void toOutputWindow(double calcT, double calcG, double trigAngle1, double tempXF, double tempYF, double xAccel, double yAccel, double altitudeToPlanetCenter, double xPos, double yPos, double angle, double trigAngle2, double xSpeed, double ySpeed) {
 
 //        (calcT(), calcG(), trigAngle("c", xPos, yPos), tempXF, tempYF, xAccel, yAccel, altitudeToPlanetCenter, xPos, yPos, angle, trigAngle("c", angle)
         this.jTextField1.setText("Thrust Force: " + (float) calcT + ", \tGravity force " + (float) calcG + ", \t Gravity cos: " + (float)trigAngle1);
         this.jTextField2.setText("XF = " + (float)tempXF + ", \tYF = " + (float)tempYF);
         this.jTextField3.setText("xAccel: " + (float)xAccel + ", \tyAccel: " + (float)yAccel);
         this.jTextField4.setText("Altitude = " + (float)altitudeToPlanetCenter);
-        this.jTextField5.setText("Rocket Position: " + (float)xPos / 1000 + ", " + (float)yPos / 1000 );
-        this.jTextField6.setText("ShipAngle: " + (float)angle + ", \t rCosValue: " + (float)trigAngle2);
+        this.jTextField5.setText("Rocket Position: " + (float)xPos / 1000 + ", \t" + (float)yPos / 1000 );
+        this.jTextField6.setText("ShipAngle: " + (float)angle + ", \t rCosValue: " + (float)trigAngle2 + ", \tTotal: " + (Math.sqrt(Math.pow(ySpeed / 100, 2) + Math.pow(xSpeed / 100, 2))));
+        this.jTextField7.setText("xSpeed: " + xSpeed / 100 + ", \t ySpeed: " + ySpeed / 100);
 
     }
     
@@ -157,6 +164,7 @@ public class OutputWindow extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField4;
     private javax.swing.JTextField jTextField5;
     private javax.swing.JTextField jTextField6;
+    private javax.swing.JTextField jTextField7;
     // End of variables declaration//GEN-END:variables
 
 //    public void thing(double calcT, double calcG, double trigAngle1, double tempXF, double tempYF, double xAccel, double yAccel, double altitudeToPlanetCenter, double xPos, double yPos, double angle, double trigAngle2) {

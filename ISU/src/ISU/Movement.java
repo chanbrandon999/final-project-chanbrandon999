@@ -20,34 +20,31 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import static ISU.Calculations.trigAngle;
+import java.awt.RenderingHints;
+import java.awt.geom.Ellipse2D;
 
 class Movement extends JPanel implements ActionListener, MouseWheelListener {
 
     int delay = 10; //10 Milliseconds (1/100 seconds)
     Timer timer;
 
-    long pRadius = 1 * 500000, pScale = pRadius * 10000 * 2;    
+    int accuracy = 1000;
+    long pRadius = 1 * 500000, pScale = pRadius * 10000 * 2;
     double xPos = 0;                        //used to be int/long
-    double yPos = pRadius * 1000;            //used to be int/long
-    double aThrottle = 0, aSpeed = 0, angle = 0;
-    double rXSpeed = 0, rYSpeed = 0, sThrottle = 0;
-    double dx = 0, dy = 0;
-    long drag = 1000;
+    double yPos = pRadius * accuracy;            //used to be int/long
+    double angle = 0;
     long pXpos = 0, pYpos = 0;
-    double pGravity = 9.81;
-    double pAHL = 70000;        //This is the atmospheric height limit where there would be no more atmosphere 
     double[][] stars = new double[50][3];
     double altitudeToPlanetCenter;
-    double rMass = 30000;
-    long rThrust = 1500 * 1000;
-    double tempXF = 0, tempYF = 0;
-    double xAccel = 0, yAccel = 0;
+
     Calculations c = new Calculations();
+    double[] passThroughI = new double[8];
+    double[] passThroughF = new double[4];
 
     Random rand = new Random(); //Random number generator
     BufferedImage rPic = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
     BufferedImage starBkg = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
-    double zScale = 0.3, scrollX = 0;
+    double zScale = 0.3;
 
     public Movement(int width, int height) {
 //        BufferedImage rPic = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
@@ -80,82 +77,14 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
     @Override
     public void actionPerformed(ActionEvent e) {
 
-//        drag = yPos / 500000;
-        drag = 0;  //temporary measure 
+        passThroughF = c.positionUpdate(passThroughI);
 
-        calcD();
-
-        tempXF = (calcT() * trigAngle("s", angle)) - (calcG() * trigAngle("s", xPos, yPos));
-
-//            System.out.println("That Y");
-        tempYF = (calcT() * trigAngle("c", angle)) - (calcG() * trigAngle("c", xPos, yPos));
-//            System.out.println("angle cos multiplier for calcG: " + Math.sin(Math.toRadians(Math.atan(yPos / xPos))));
-
-        xAccel = (tempXF / rMass);
-        yAccel = (tempYF / rMass);
-
-        altitudeToPlanetCenter = (Math.sqrt(Math.pow(xPos / 1000, 2) + Math.pow(yPos / 1000, 2)));
-
-        if (altitudeToPlanetCenter < pRadius) {
-            if (xPos != 0) {
-                tempXF = pRadius * Math.sin(Math.toRadians(Math.atan(yPos / xPos)));
-//                tempYF = pRadius * Math.cos(Math.toRadians(Math.atan(yPos / xPos)));
-                tempYF = pRadius;
-            } else {
-                tempXF = 0;
-                tempYF = calcG();
-            }
-//            System.out.println("Under planet tempY = " + tempYF);
-//            System.out.println(1 * Math.cos(Math.toRadians(Math.atan(yPos / xPos))));
-            xPos += (tempXF);
-            yPos += (tempYF);
-
-        } else {
-            rXSpeed += xAccel;
-            rYSpeed += yAccel;
-
-            xPos += rXSpeed / 100;
-            yPos += rYSpeed / 100;
-        }
-
-        System.out.println("Thrust Force: " + calcT() + ", \tGravity force " + calcG() + ", \t Gravity cos: " + trigAngle("c", xPos, yPos));
-        System.out.println("X component = " + tempXF + ", \tY component = " + tempYF);
-        System.out.println("xAccel: " + xAccel + ",  \t\tyAccel: " + yAccel);
-        System.out.println("Altitude = " + altitudeToPlanetCenter);
-        System.out.println("Rocket Position: " + xPos / 200000 + ", " + yPos / 200000 + "\tshipAngle" + angle + ", \t rCosValue" + trigAngle("c", angle));
-
+        xPos = passThroughF[0];
+        yPos = passThroughF[1];
+        angle = passThroughF[2];
+        altitudeToPlanetCenter = passThroughF[3];
+//        System.out.println("angle = " + angle);
         repaint();
-    }
-
-    private double calcG() {
-
-        if (altitudeToPlanetCenter <= pRadius) {
-            return 0;
-        } else {
-            return rMass * (pGravity / Math.pow(altitudeToPlanetCenter / pRadius, 2));
-        }
-
-    }
-
-    private void calcD() {
-//        if (rSpeed > 0) {
-//            rSpeed += -(drag);
-//        } else if (rSpeed < 0) {
-//            rSpeed += (drag);
-//        }
-
-//        aSpeed = aThrottle / 1;
-//        System.out.println(aSpeed);
-        if (aSpeed > 0) {
-            aSpeed += (drag / 5);                           //Fix angular drag model 
-        } else if (aSpeed < 0) {
-            aSpeed -= (drag / 5);
-        }
-        angle += aSpeed / 5;
-    }
-
-    private double calcT() {
-        return sThrottle * rThrust; //The total thrust would be limited by the throttle as a percentage of the thrust. 
     }
 
     @Override
@@ -163,7 +92,7 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
 
-        pScale = (long) (pRadius * zScale);
+        pScale = (long) (pRadius * 2 * 10000 * zScale);
         dispScenery(g);
 
         AffineTransform at = new AffineTransform();
@@ -177,50 +106,51 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
     private void dispScenery(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
 
-        //########Black Background
-        g2d.setPaint(Color.getHSBColor((float) .55, (float) .71, (float) .70));
+        //########Background atmosphere/space
+        g2d.setPaint(Color.getHSBColor((float) .55, (float) .71, (float) .70));  //Last number for darkness 
         g2d.fillRect(0, 0, getWidth(), getHeight());
 
         //########Stars
         g.setColor(Color.white);
         for (int i = 0; i < stars.length; i++) {
-            stars[i][0] -= dx / 1000000000;
-            stars[i][1] -= dy / 1000000000;
+//            stars[i][0] -= dx / 1000000000;
+//            stars[i][1] -= dy / 1000000000;
             g.fillOval((int) stars[i][1], (int) stars[i][0], (int) stars[i][2], (int) stars[i][2]);
         }
 
         //#######Planet
         pXpos = (getWidth() - pScale) / 2;
-//        pYpos = (long) ((xPos) / 1000 * 1 + (getHeight() + (rPic.getHeight() * zScale)) / 2);
-//        pYpos = (long) (((altitudeToPlanetCenter) * 1 - pScale) / 100000 + (getHeight() + (rPic.getHeight() * zScale)) / 2);
-//        pYpos = (long) ((((altitudeToPlanetCenter) * 1 - pScale) / 100000 + (getHeight() + (rPic.getHeight())) / 2) * zScale);
-        pYpos = (long) (rPic.getHeight() + altitudeToPlanetCenter / 1000000);  //Fix This
 
-//        System.out.println("pYpos = " + pYpos);
-//        System.out.println("yPos - pRadius = " + (yPos - pRadius) / 10000);
-//        System.out.println((yPos - pRadius) / 1000 + (getHeight() + (rPic.getHeight() * zScale)) / 2);
+        pYpos = (long) (getHeight() / 2 + ((rPic.getHeight() / 2) + (altitudeToPlanetCenter - pRadius) * accuracy) * zScale);           //#########################FIX ME
+
         g.setColor(Color.green);
-        g.fillOval((int) pXpos, (int) pYpos, (int) pScale, (int) pScale);
-//        System.out.println(yPos);
+//        g.fillOval(pXpos, pYpos, pScale, pScale);
+        Ellipse2D.Double shape = new Ellipse2D.Double(pXpos, pYpos, pScale, pScale);
+        g2d.draw(shape);
+        g2d.fill(shape);
 
+//        System.out.println(yPos);
     }
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
         if (zScale >= 0.00005 && zScale <= 1) {
             if (e.getWheelRotation() > 0) {
-                zScale -= 0.3 * zScale;
+                zScale -= 0.25 * zScale;
             } else if (e.getWheelRotation() < 0) {
-                zScale += 0.3 * zScale;
+                zScale += 0.25 * zScale;
             }
-
         }
 
-        if (zScale < 0.00005) {
+        if (zScale < 0.00006) {
             zScale = 0.00005;
-        } else if (zScale > 1) {
+        } else if (zScale > 1.00001) {
             zScale = 1;
         }
+        System.out.println("zScale: " + zScale);
+//        System.out.println((getHeight() / 2 + ((rPic.getHeight() / 2) + (altitudeToPlanetCenter - pRadius) * accuracy) * zScale));
+//        System.out.println("3: " + ((altitudeToPlanetCenter - pRadius) * accuracy) * zScale);
+//        System.out.println("4: " + (int) pXpos + ", " + (int) pYpos + ", " + (int) Math.abs(pScale) + ", " + (int) Math.abs(pScale));
     }
 
     private class TAdapter extends KeyAdapter {
@@ -229,61 +159,57 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
         public void keyReleased(KeyEvent e) {
             int key = e.getKeyCode();
 
-//            if (key == KeyEvent.VK_UP) {
-//                System.out.println("Released Up");
-////                rSpeed += -1000;
-//                sThrottle += 0;
-//
-//            }
+            if (key == KeyEvent.VK_UP) {
+                System.out.println("Released Up");
+                passThroughI[4] = 0;
+            }
+
+            if (key == KeyEvent.VK_DOWN) {
+                System.out.println("Released Down");
+                passThroughI[5] = 0;
+            }
+            if (key == KeyEvent.VK_LEFT) {
+                System.out.println("Released Left");
+                passThroughI[6] = 0;
+
+            }
+
+            if (key == KeyEvent.VK_RIGHT) {
+                System.out.println("Released Right");
+                passThroughI[7] = 0;
+            }
         }
 
         @Override
         public void keyPressed(KeyEvent e) {
 //            System.out.println("Key pressed code=" + e.getKeyCode() + ", char=" + e.getKeyChar());
             int key = e.getKeyCode();
+//            c.controls(key);
 
-            aThrottle = 0;
+            if (key == KeyEvent.VK_UP) {
+//                System.out.println("Up");
+                passThroughI[4] = 1;
+            }
 
+            if (key == KeyEvent.VK_DOWN) {
+//                System.out.println("Down");
+                passThroughI[5] = 1;
+            }
             if (key == KeyEvent.VK_LEFT) {
-                System.out.println("Left");
-//                    dragX = 1;
-
-                if (aSpeed > -10) {
-                    aSpeed--;
-
-                }
+//                System.out.println("Left");
+                passThroughI[6] = 1;
 
             }
 
             if (key == KeyEvent.VK_RIGHT) {
-                System.out.println("Right");
-
-                if (aSpeed < 10) {
-                    aSpeed++;
-                }
+//                System.out.println("Right");
+                passThroughI[7] = 1;
             }
 
-            if (key == KeyEvent.VK_UP) {
-                System.out.println("Up");
-//                rSpeed += -1000;
-
-                sThrottle += 0.1;
-                if (sThrottle > 1) {
-                    sThrottle = 1;
-                }
+            if (key == KeyEvent.VK_HOME) {
+//                System.out.println("Right");
+                passThroughI[7] = 10;
             }
-
-            if (key == KeyEvent.VK_DOWN) {
-                System.out.println("Down");
-//                rSpeed = 000;
-
-                sThrottle -= 0.1;
-                if (sThrottle < 0) {
-                    sThrottle = 0;
-                }
-
-            }
-
         }
 
     }
@@ -421,3 +347,47 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
 ////            dy = -Math.abs(dy);
 //            yPos = 0;
 //        }
+//#####################Old Controls
+//            if (key == KeyEvent.VK_LEFT) {
+//                System.out.println("Left");
+////                    dragX = 1;
+//
+//                if (aSpeed > -10) {
+//                    aSpeed--;
+//
+//                }
+//
+//            }
+//
+//            if (key == KeyEvent.VK_RIGHT) {
+//                System.out.println("Right");
+//
+//                if (aSpeed < 10) {
+//                    aSpeed++;
+//                }
+//            }
+//
+//            if (key == KeyEvent.VK_UP) {
+//                System.out.println("Up");
+////                rSpeed += -1000;
+//
+//                sThrottle += 0.1;
+//                if (sThrottle > 1) {
+//                    sThrottle = 1;
+//                }
+//            }
+//
+//            if (key == KeyEvent.VK_DOWN) {
+//                System.out.println("Down");
+////                rSpeed = 000;
+//
+//                sThrottle -= 0.1;
+//                if (sThrottle < 0) {
+//                    sThrottle = 0;
+//                }
+//
+//            }
+//###########Planet Display
+//        pYpos = (long) ((xPos) / 1000 * 1 + (getHeight() + (rPic.getHeight() * zScale)) / 2);
+//        pYpos = (long) (((altitudeToPlanetCenter) * 1 - pScale) / 100000 + (getHeight() + (rPic.getHeight() * zScale)) / 2);
+//        pYpos = (long) ((((altitudeToPlanetCenter) * 1 - pScale) / 100000 + (getHeight() + (rPic.getHeight())) / 2) * zScale);
