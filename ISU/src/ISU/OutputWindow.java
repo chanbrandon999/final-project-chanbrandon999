@@ -144,11 +144,11 @@ public class OutputWindow extends javax.swing.JFrame {
 //        (calcT(), calcG(), trigAngle("c", xPos, yPos), tempXF, tempYF, xAccel, yAccel, altitudeToPlanetCenter, xPos, yPos, angle, trigAngle("c", angle)
         this.jTextField1.setText("Thrust Force: " + (float) calcT + ", \tGravity force " + (float) calcG + ", \t Gravity cos: " + (float)trigAngle1);
         this.jTextField2.setText("XF = " + (float)tempXF + ", \tYF = " + (float)tempYF);
-        this.jTextField3.setText("xAccel: " + (float)xAccel + ", \tyAccel: " + (float)yAccel);
+        this.jTextField3.setText("XFAccel: " + (float)xAccel + ", \tYFAccel: " + (float)yAccel);
         this.jTextField4.setText("Altitude = " + (float)altitudeToPlanetCenter);
-        this.jTextField5.setText("Rocket Position: " + (float)xPos / 1000 + ", \t" + (float)yPos / 1000 );
-        this.jTextField6.setText("ShipAngle: " + (float)angle + ", \t rCosValue: " + (float)trigAngle2 + ", \tTotal: " + (Math.sqrt(Math.pow(ySpeed / 100, 2) + Math.pow(xSpeed / 100, 2))));
-        this.jTextField7.setText("xSpeed: " + xSpeed / 100 + ", \t ySpeed: " + ySpeed / 100);
+        this.jTextField5.setText("Rocket Position: " + (float)xPos / 1000 + ", \t\t" + (float)yPos / 1000 );
+        this.jTextField6.setText("ShipAngle: " + (float)angle + ", \t rCosValue: " + (float)trigAngle2 + ", \tTotal: " + (Math.sqrt(Math.pow(ySpeed, 2) + Math.pow(xSpeed, 2))));
+        this.jTextField7.setText("xSpeed: " + xSpeed / 1 + ", \t ySpeed: " + ySpeed / 1);
 
     }
     

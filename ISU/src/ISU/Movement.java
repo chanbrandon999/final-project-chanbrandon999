@@ -20,41 +20,63 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import static ISU.Calculations.trigAngle;
+import java.awt.AlphaComposite;
 import java.awt.RenderingHints;
 import java.awt.geom.Ellipse2D;
+import java.awt.image.ImageFilter;
+import java.util.ArrayList;
+import java.util.List;
 
 class Movement extends JPanel implements ActionListener, MouseWheelListener {
 
     int delay = 10; //10 Milliseconds (1/100 seconds)
+    int tDelay = 1000 / delay;
     Timer timer;
+    Timer timer2;
 
     int accuracy = 1000;
-    long pRadius = 1 * 500000, pScale = pRadius * 10000 * 2;
+    long pRadius = 1 * 600000, pScale = pRadius * 10000 * 2;
     double xPos = 0;                        //used to be int/long
     double yPos = pRadius * accuracy;            //used to be int/long
     double angle = 0;
     long pXpos = 0, pYpos = 0;
+    double pAHL = 70000;        //This is the atmospheric height limit where there would be no more atmosphere 
+    double backColour;
+
     double[][] stars = new double[50][3];
     double altitudeToPlanetCenter;
+    double rXSpeed, rYSpeed;
+    boolean isPaused = false;
+    boolean blowUp = false;
 
     Calculations c = new Calculations();
     double[] passThroughI = new double[8];
-    double[] passThroughF = new double[4];
+    double[] passThroughF = new double[6];
 
     Random rand = new Random(); //Random number generator
     BufferedImage rPic = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage explosion1 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage explosion2 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage explosion3 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage explosion4 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage explosion5 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
     BufferedImage starBkg = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
     double zScale = 0.3;
 
     public Movement(int width, int height) {
-//        BufferedImage rPic = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
 
         try {
 
             rPic = ImageIO.read(new File("Rocket.png"));
-            starBkg = ImageIO.read(new File("tile.jpeg"));
+            starBkg = ImageIO.read(new File("Stars.jpeg"));
+            explosion1 = ImageIO.read(new File("Explosion.gif"));
+            explosion2 = ImageIO.read(new File("e2.png"));
+            explosion3 = ImageIO.read(new File("e3.png"));
+            explosion4 = ImageIO.read(new File("e4.jpg"));
+            explosion5 = ImageIO.read(new File("e5.jpg"));
 
         } catch (IOException e) {
+            System.out.println(e);
         }
 
         addKeyListener(new TAdapter());
@@ -72,18 +94,38 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
         //the "this" is the actionPerformed method
         timer.start();
 
+//        if (blowUp == true) {
+//            System.out.println("Switching timers");
+//            timer2 = new Timer(delay, this);
+//            timer2.start();
+//            blowUp = true;
+//
+//        }
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        if (blowUp == false) {
+            passThroughF = c.positionUpdate(passThroughI);
+        }
+        if (passThroughF[1] == -1.192837465 && passThroughF[0] == -1.9182736465) {
+            timer.stop();
 
-        passThroughF = c.positionUpdate(passThroughI);
+            if (blowUp == false) {
+                System.out.println("Switching timers");
+                timer2 = new Timer(300, this);
+                timer2.start();
+                blowUp = true;
+            }
 
-        xPos = passThroughF[0];
-        yPos = passThroughF[1];
-        angle = passThroughF[2];
-        altitudeToPlanetCenter = passThroughF[3];
-//        System.out.println("angle = " + angle);
+        } else {
+            xPos = passThroughF[0];
+            yPos = passThroughF[1];
+            angle = passThroughF[2];
+            altitudeToPlanetCenter = passThroughF[3];
+            rXSpeed = passThroughF[4];
+            rYSpeed = passThroughF[5];
+        }
         repaint();
     }
 
@@ -93,47 +135,112 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
         Graphics2D g2d = (Graphics2D) g;
 
         pScale = (long) (pRadius * 2 * 10000 * zScale);
+
         dispScenery(g);
 
-        AffineTransform at = new AffineTransform();
-        at.translate(getWidth() / 2 - rPic.getWidth() * zScale / 2, getHeight() / 2 - rPic.getHeight() * zScale / 2);  //Don't touch. Puts the rocket at the center
-        at.scale(zScale, zScale);
-        at.rotate(Math.toRadians(angle), rPic.getWidth() / 2, rPic.getHeight() / 2);
-        g2d.drawImage(rPic, at, this);
+        if (blowUp == false) {
+            AffineTransform at = new AffineTransform();
+            at.translate(getWidth() / 2 - rPic.getWidth() * zScale / 2, getHeight() / 2 - rPic.getHeight() * zScale / 2);  //Don't touch. Puts the rocket at the center
+            at.scale(zScale, zScale);
+            at.rotate(Math.toRadians(angle), rPic.getWidth() / 2, rPic.getHeight() / 2);
+            g2d.drawImage(rPic, at, this);
+        } else {
+            System.out.println("Display Image");
+            g2d.drawImage(rPic, 200, 200, 200, 200, this);
+        }
+//        dispExplosion(g);
 
+    }
+
+    private int getExpPos(char x) {     //Fix explosion positioning
+        if (x == 'w') {
+//            return 0;
+            return ((-200) + (rand.nextInt(100) - 50) + 700 / 2);
+//            return ((-200) + (rand.nextInt(100) - 50) + getWidth() / 2);
+        } else if (x == 'h') {
+//            return ((-200) + (rand.nextInt(100) - 50) + getHeight() / 2);
+            return ((-200) + (rand.nextInt(100) - 50) + 700 / 2);
+        }
+        return 0;
+
+    }
+
+    private void dispExplosion(Graphics g) {
+        Graphics2D g2d = (Graphics2D) g;
+
+        for (int i = 0; i < rand.nextInt(3) + 1; i++) {
+            switch (rand.nextInt(5) + 1) {
+                case 1:
+                    g2d.drawImage(explosion1, 200, 200, 200, 200, this);
+//                        g2d.drawImage(e1, i, i, this)
+                    break;
+                case 2:
+                    g2d.drawImage(explosion2, getExpPos('w'), getExpPos('h'), 200, 200, this);
+                    break;
+                case 3:
+                    g2d.drawImage(explosion3, getExpPos('w'), getExpPos('h'), 200, 200, this);
+                    break;
+                case 4:
+                    g2d.drawImage(explosion4, getExpPos('w'), getExpPos('h'), 200, 200, this);
+                    break;
+                case 5:
+                    g2d.drawImage(explosion5, getExpPos('w'), getExpPos('h'), 200, 200, this);
+                    break;
+            }
+
+        }
     }
 
     private void dispScenery(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
 
+        if (altitudeToPlanetCenter > (pRadius + pAHL)) {
+            backColour = 0;
+        } else {
+            backColour = .7 - ((altitudeToPlanetCenter - pRadius) / pAHL) * 0.7;
+        }
+
         //########Background atmosphere/space
-        g2d.setPaint(Color.getHSBColor((float) .55, (float) .71, (float) .70));  //Last number for darkness 
+        g2d.setPaint(Color.getHSBColor((float) .55, (float) .71, (float) backColour));  //Last number for darkness 
         g2d.fillRect(0, 0, getWidth(), getHeight());
 
         //########Stars
         g.setColor(Color.white);
         for (int i = 0; i < stars.length; i++) {
-//            stars[i][0] -= dx / 1000000000;
-//            stars[i][1] -= dy / 1000000000;
+            if (blowUp == false) {
+                stars[i][0] += rYSpeed / 1000;
+                stars[i][1] -= rXSpeed / 1000;
+
+                if (stars[i][0] > getHeight()) {
+                    stars[i][0] -= getHeight();
+                } else if (stars[i][0] < 0) {
+                    stars[i][0] += getHeight();
+                }
+
+                if (stars[i][1] > getWidth()) {
+                    stars[i][1] -= getWidth();
+                } else if (stars[i][1] < 0) {
+                    stars[i][1] += getWidth();
+                }
+            }
+
             g.fillOval((int) stars[i][1], (int) stars[i][0], (int) stars[i][2], (int) stars[i][2]);
         }
 
-        //#######Planet
+        //###################Planet###################
         pXpos = (getWidth() - pScale) / 2;
-
-        pYpos = (long) (getHeight() / 2 + ((rPic.getHeight() / 2) + (altitudeToPlanetCenter - pRadius) * accuracy) * zScale);           //#########################FIX ME
+        pYpos = (long) (getHeight() / 2 + ((rPic.getHeight() / 2) + 1 * (altitudeToPlanetCenter - pRadius) * accuracy) * zScale);           //#########################FIX ME
 
         g.setColor(Color.green);
-//        g.fillOval(pXpos, pYpos, pScale, pScale);
         Ellipse2D.Double shape = new Ellipse2D.Double(pXpos, pYpos, pScale, pScale);
         g2d.draw(shape);
         g2d.fill(shape);
 
-//        System.out.println(yPos);
     }
 
     @Override
-    public void mouseWheelMoved(MouseWheelEvent e) {
+    public void mouseWheelMoved(MouseWheelEvent e
+    ) {
         if (zScale >= 0.00005 && zScale <= 1) {
             if (e.getWheelRotation() > 0) {
                 zScale -= 0.25 * zScale;
@@ -159,24 +266,31 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
         public void keyReleased(KeyEvent e) {
             int key = e.getKeyCode();
 
-            if (key == KeyEvent.VK_UP) {
+            if (key == KeyEvent.VK_W) {
                 System.out.println("Released Up");
                 passThroughI[4] = 0;
             }
 
-            if (key == KeyEvent.VK_DOWN) {
+            if (key == KeyEvent.VK_S) {
                 System.out.println("Released Down");
                 passThroughI[5] = 0;
             }
-            if (key == KeyEvent.VK_LEFT) {
+            if (key == KeyEvent.VK_A) {
                 System.out.println("Released Left");
                 passThroughI[6] = 0;
-
             }
 
-            if (key == KeyEvent.VK_RIGHT) {
+            if (key == KeyEvent.VK_D) {
                 System.out.println("Released Right");
                 passThroughI[7] = 0;
+            }
+
+            if (key == KeyEvent.VK_Z) {
+                passThroughI[4] = 0;
+            }
+
+            if (key == KeyEvent.VK_X) {
+                passThroughI[5] = 0;
             }
         }
 
@@ -186,22 +300,21 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
             int key = e.getKeyCode();
 //            c.controls(key);
 
-            if (key == KeyEvent.VK_UP) {
+            if (key == KeyEvent.VK_W) {
 //                System.out.println("Up");
                 passThroughI[4] = 1;
             }
 
-            if (key == KeyEvent.VK_DOWN) {
+            if (key == KeyEvent.VK_S) {
 //                System.out.println("Down");
                 passThroughI[5] = 1;
             }
-            if (key == KeyEvent.VK_LEFT) {
+            if (key == KeyEvent.VK_A) {
 //                System.out.println("Left");
                 passThroughI[6] = 1;
-
             }
 
-            if (key == KeyEvent.VK_RIGHT) {
+            if (key == KeyEvent.VK_D) {
 //                System.out.println("Right");
                 passThroughI[7] = 1;
             }
@@ -210,6 +323,29 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
 //                System.out.println("Right");
                 passThroughI[7] = 10;
             }
+
+            if (key == KeyEvent.VK_Z) {
+//                System.out.println("Up");
+                passThroughI[4] = -1;
+            }
+
+            if (key == KeyEvent.VK_X) {
+//                System.out.println("Down");
+                passThroughI[5] = 10;
+            }
+
+            if (key == KeyEvent.VK_ESCAPE) {
+
+                if (isPaused == false) {
+                    timer.stop();
+                    isPaused = true;
+                } else {
+                    timer.start();
+                    isPaused = false;
+                }
+
+            }
+
         }
 
     }
@@ -391,3 +527,4 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
 //        pYpos = (long) ((xPos) / 1000 * 1 + (getHeight() + (rPic.getHeight() * zScale)) / 2);
 //        pYpos = (long) (((altitudeToPlanetCenter) * 1 - pScale) / 100000 + (getHeight() + (rPic.getHeight() * zScale)) / 2);
 //        pYpos = (long) ((((altitudeToPlanetCenter) * 1 - pScale) / 100000 + (getHeight() + (rPic.getHeight())) / 2) * zScale);
+//        g.fillOval(pXpos, pYpos, pScale, pScale);

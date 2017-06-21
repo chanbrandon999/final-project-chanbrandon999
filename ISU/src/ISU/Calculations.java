@@ -24,17 +24,17 @@ class Calculations {
     double[][] stars = new double[50][3];
     double altitudeToPlanetCenter;
     double rMass = 30000;
-    long rThrust = 1500 * 1000;
-    double tempXF = 0, tempYF = 0;
+    long rThrust = 1500 * 1000 * 1000;
+    double xForce = 0, yForce = 0;
     double xAccel = 0, yAccel = 0;
 //    boolean[] isPressed = new boolean[4];
     double[] passThrough1 = new double[8];
     int i = 0;
+    int tDelay = 1000 / 10;
 
     Random rand = new Random(); //Random number generator
     double zScale = 0.3;
     OutputWindow frame2 = new OutputWindow();
-    
 
     public Calculations() {
 
@@ -50,13 +50,20 @@ class Calculations {
         frame2.setSize(600, 300);
         frame2.setLocation(700, 50);
 
-        xPos = 0;
-        yPos = (pRadius + 100000) * accuracy;
+        if (false) {
+            xPos = 0;
+            yPos = (pRadius + 100000) * accuracy;
 //        rXSpeed = 2427 * 2 * 100;
-        rXSpeed = 2427 * 3 * 100 - 18000;
-        rYSpeed = 0;
-        System.out.println(trigAngle("s", .1, 5));
+            rXSpeed = 2427 * 3 * 1 - 177.25;
+//        rXSpeed = 2428 * 2;
+            rYSpeed = 0;
+        }
         
+        if (true) {
+            yPos = (pRadius + 1000) * accuracy;
+            angle = 180;
+            rYSpeed = -1000;
+        }
 
 //        frame2.toOutputWindow(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
@@ -70,49 +77,49 @@ class Calculations {
 
         drag = 0;  //temporary measure 
 
-        calcD();
+//        calcD();
+        xForce = (calcT() * trigAngle("s", angle)) - (calcG() * trigAngle("s", xPos, yPos));
+        yForce = (calcT() * trigAngle("c", angle)) - (calcG() * trigAngle("c", xPos, yPos));
 
-        tempXF = (calcT() * trigAngle("c", angle)) - (calcG() * trigAngle("c", xPos, yPos));
-        tempYF = (calcT() * trigAngle("s", angle)) - (calcG() * trigAngle("s", xPos, yPos));
+        xAccel = (xForce / rMass);
+        yAccel = (yForce / rMass);
 
-        xAccel = (tempXF / rMass);
-        yAccel = (tempYF / rMass);
-
-        if (i != 0) {
-            moveRocket();
-            
-        }   else    {
-            i++;
+//        if (i != 0) {
+//        } else {
+//            i++;
+//        }
+        if (moveRocket() == true) {
+            return new double[]{-1.9182736465, -1.192837465};
         }
 
         altitudeToPlanetCenter = (Math.sqrt(Math.pow(xPos / 1000, 2) + Math.pow(yPos / 1000, 2)));
 
-        angle += aSpeed;
-
-        frame2.toOutputWindow(calcT(), calcG(), trigAngle("c", xPos, yPos), tempXF, tempYF, xAccel, yAccel, altitudeToPlanetCenter, xPos, yPos, angle, trigAngle("c", angle), rXSpeed, rYSpeed);
-
-        return new double[]{xPos, yPos, calcD(), altitudeToPlanetCenter};
+        frame2.toOutputWindow(calcT(), calcG(), trigAngle("s", xPos, yPos), xForce, yForce, xAccel, yAccel, altitudeToPlanetCenter, xPos, yPos, angle, trigAngle("c", angle), rXSpeed, rYSpeed);
+        return new double[]{xPos, yPos, angle, altitudeToPlanetCenter, rXSpeed, rYSpeed};
     }
 
-    private void moveRocket() {
+    private boolean moveRocket() {
 
-        rXSpeed += xAccel;
-        rYSpeed += yAccel;
+        rXSpeed += xAccel / tDelay;     //The position increments each 10 milliseconds 
+        rYSpeed += yAccel / tDelay;
 
-//        System.out.println("Speed: " + rYSpeed / 100);
-        xPos += rXSpeed / 100;
-        yPos += rYSpeed / 100;
+        xPos += rXSpeed;                //The position updates each 10 miliseconds by the speed each milisecond 
+        yPos += rYSpeed;
 
         if ((Math.sqrt(Math.pow(xPos / accuracy, 2) + Math.pow(yPos / accuracy, 2))) < pRadius) {
 
-            if ((Math.sqrt(Math.pow(rXSpeed, 2) + Math.pow(rXSpeed, 2))) > 6) {
-                System.out.println("Blow up!");
-                System.exit(0);
+            if ((Math.sqrt(Math.pow(rXSpeed / tDelay, 2) + Math.pow(rYSpeed / tDelay, 2))) > 6) {
+//                System.out.println("Blow up!");
+                return true;
             }
 
             xPos = pRadius * trigAngle("s", xPos, yPos) * accuracy;
             yPos = pRadius * trigAngle("c", xPos, yPos) * accuracy;
         }
+
+        angle += aSpeed;
+        return false;
+
     }
 
     public static double trigAngle(String sinORcos, double xPos, double yPos) {
@@ -124,10 +131,10 @@ class Calculations {
         }
 
         if (sinORcos.equals("s")) {
-            return Math.sin((Math.atan(yPos / xPos)));
-            
+            return Math.sin((Math.atan(xPos / yPos)));
+
         } else if (sinORcos.equals("c")) {
-            return Math.cos((Math.atan(yPos / xPos)));
+            return Math.cos((Math.atan(xPos / yPos)));
         }
 
         return 0;
@@ -170,7 +177,7 @@ class Calculations {
 //        }
 //System.out.println("sdfdsf");
 //        System.out.println(aSpeed);
-        return angle;
+        return 0;
     }
 
     private double calcT() {
@@ -178,6 +185,9 @@ class Calculations {
     }
 
 //    public void controls(double[] passThrough) {
+    
+
+    
     public void controls() {
 
         if (passThrough1[6] == 1) {
@@ -202,7 +212,12 @@ class Calculations {
 
         if (passThrough1[7] == 10) {
             System.out.println("HOME");
-
+            xPos = 0;
+            yPos = (pRadius + 100000) * accuracy;
+//        rXSpeed = 2427 * 2 * 100;
+            rXSpeed = 2427 * 3 * 1 - 177.25;
+//        rXSpeed = 2428 * 2;
+            rYSpeed = 0;
         }
 
         if (passThrough1[4] == 1) {
@@ -211,6 +226,9 @@ class Calculations {
             if (sThrottle > 1) {
                 sThrottle = 1;
             }
+        } else if (passThrough1[4] == -1) {
+            System.out.println("Cancel Throttle");
+            sThrottle = 0;
         }
 
         if (passThrough1[5] == 1) {
@@ -220,6 +238,9 @@ class Calculations {
                 sThrottle = 0;
             }
 
+        } else if (passThrough1[5] == 10) {
+            System.out.println("Full Throttle");
+            sThrottle = 1;
         }
 
 //        return new double[]{aSpeed, sThrottle};
@@ -228,7 +249,7 @@ class Calculations {
 
 //##########################NEW GARBAGE CODE###################################
 //        System.out.println("Thrust Force: " + calcT() + ", \tGravity force " + calcG() + ", \t Gravity cos: " + trigAngle("c", xPos, yPos));
-//        System.out.println("X component = " + tempXF + ", \tY component = " + tempYF);
+//        System.out.println("X component = " + xForce + ", \tY component = " + yForce);
 //        System.out.println("xAccel: " + xAccel + ",  \t\tyAccel: " + yAccel);
 //        System.out.println("Altitude = " + altitudeToPlanetCenter);
 //        System.out.println("Rocket Position: " + xPos / 1000 + ", " + yPos / 1000 + "\tshipAngle" + angle + ", \t rCosValue" + trigAngle("c", angle));
