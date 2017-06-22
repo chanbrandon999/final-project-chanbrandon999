@@ -48,9 +48,10 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
     double rXSpeed, rYSpeed;
     boolean isPaused = false;
     boolean blowUp = false;
+    int blowUpCount = 0;
 
     Calculations c = new Calculations();
-    double[] passThroughI = new double[8];
+    double[] passThroughI = new double[10];
     double[] passThroughF = new double[6];
 
     Random rand = new Random(); //Random number generator
@@ -68,12 +69,12 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
         try {
 
             rPic = ImageIO.read(new File("Rocket.png"));
-            starBkg = ImageIO.read(new File("Stars.jpeg"));
-            explosion1 = ImageIO.read(new File("Explosion.gif"));
+//            starBkg = ImageIO.read(new File("Stars.jpeg"));
+            explosion1 = ImageIO.read(new File("e1.png"));
             explosion2 = ImageIO.read(new File("e2.png"));
             explosion3 = ImageIO.read(new File("e3.png"));
-            explosion4 = ImageIO.read(new File("e4.jpg"));
-            explosion5 = ImageIO.read(new File("e5.jpg"));
+            explosion4 = ImageIO.read(new File("e4.png"));
+            explosion5 = ImageIO.read(new File("e5.png"));
 
         } catch (IOException e) {
             System.out.println(e);
@@ -145,23 +146,16 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
             at.rotate(Math.toRadians(angle), rPic.getWidth() / 2, rPic.getHeight() / 2);
             g2d.drawImage(rPic, at, this);
         } else {
-            System.out.println("Display Image");
-            g2d.drawImage(rPic, 200, 200, 200, 200, this);
-        }
-//        dispExplosion(g);
+//            System.out.println("Display Image");
+//            g2d.drawImage(rPic, 200, 200, 200, 200, this);
+            if (blowUpCount < 15) {
+                dispExplosion(g);
+                blowUpCount++;
+            } else {
+                timer2.stop();
+            }
 
-    }
-
-    private int getExpPos(char x) {     //Fix explosion positioning
-        if (x == 'w') {
-//            return 0;
-            return ((-200) + (rand.nextInt(100) - 50) + 700 / 2);
-//            return ((-200) + (rand.nextInt(100) - 50) + getWidth() / 2);
-        } else if (x == 'h') {
-//            return ((-200) + (rand.nextInt(100) - 50) + getHeight() / 2);
-            return ((-200) + (rand.nextInt(100) - 50) + 700 / 2);
         }
-        return 0;
 
     }
 
@@ -171,24 +165,36 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
         for (int i = 0; i < rand.nextInt(3) + 1; i++) {
             switch (rand.nextInt(5) + 1) {
                 case 1:
-                    g2d.drawImage(explosion1, 200, 200, 200, 200, this);
-//                        g2d.drawImage(e1, i, i, this)
+                    g2d.drawImage(explosion1, getExpPos('w'), getExpPos('h'), 400, 400, this);
                     break;
                 case 2:
-                    g2d.drawImage(explosion2, getExpPos('w'), getExpPos('h'), 200, 200, this);
+                    g2d.drawImage(explosion2, getExpPos('w'), getExpPos('h'), 400, 400, this);
                     break;
                 case 3:
-                    g2d.drawImage(explosion3, getExpPos('w'), getExpPos('h'), 200, 200, this);
+                    g2d.drawImage(explosion3, getExpPos('w'), getExpPos('h'), 400, 400, this);
                     break;
                 case 4:
-                    g2d.drawImage(explosion4, getExpPos('w'), getExpPos('h'), 200, 200, this);
+                    g2d.drawImage(explosion4, getExpPos('w'), getExpPos('h'), 400, 400, this);
                     break;
                 case 5:
-                    g2d.drawImage(explosion5, getExpPos('w'), getExpPos('h'), 200, 200, this);
+                    g2d.drawImage(explosion5, getExpPos('w'), getExpPos('h'), 400, 400, this);
                     break;
             }
 
         }
+    }
+
+    private int getExpPos(char x) {     //Fix explosion positioning
+        if (x == 'w') {
+//            return 0;
+//            return ((-100) + (rand.nextInt(100) - 50) + 700 / 2);
+            return ((-200) + (rand.nextInt(100) - 50) + getWidth() / 2);
+        } else if (x == 'h') {
+            return ((-200) + (rand.nextInt(100) - 50) + getHeight() / 2);
+//            return ((-100) + (rand.nextInt(100) - 50) + 700 / 2);
+        }
+        return 0;
+
     }
 
     private void dispScenery(Graphics g) {
@@ -267,21 +273,21 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
             int key = e.getKeyCode();
 
             if (key == KeyEvent.VK_W) {
-                System.out.println("Released Up");
+//                System.out.println("Released Up");
                 passThroughI[4] = 0;
             }
 
             if (key == KeyEvent.VK_S) {
-                System.out.println("Released Down");
+//                System.out.println("Released Down");
                 passThroughI[5] = 0;
             }
             if (key == KeyEvent.VK_A) {
-                System.out.println("Released Left");
+//                System.out.println("Released Left");
                 passThroughI[6] = 0;
             }
 
             if (key == KeyEvent.VK_D) {
-                System.out.println("Released Right");
+//                System.out.println("Released Right");
                 passThroughI[7] = 0;
             }
 
@@ -346,185 +352,21 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
 
             }
 
+            if (key == KeyEvent.VK_1) {
+                if (passThroughI[8] != 1) {
+                    passThroughI[8] = 1;
+                } else {
+                    passThroughI[8] = 0;
+                }
+            }
+
+            if (key == KeyEvent.VK_F3) {
+//                System.out.println("Down");
+                passThroughI[9] = 0.8103;
+            }
+
         }
 
     }
 
-//##########################################GARBAGE CODE#########################################
-//    @Override
-//    public void keyPressed(KeyEvent e) {
-//        System.out.println("Key pressed code=" + e.getKeyCode() + ", char=" + e.getKeyChar());
-//        int key = e.getKeyCode();
-//
-//        if (key == KeyEvent.VK_LEFT) {
-//            System.out.println("Left");
-//            rSpeed += -1;
-//        }
-//
-//        if (key == KeyEvent.VK_RIGHT) {
-//            System.out.println("Right");
-//            rSpeed += 1;
-//        }
-//
-//        if (key == KeyEvent.VK_UP) {
-//            System.out.println("Up");
-//            dy += -1;
-//        }
-//
-//        if (key == KeyEvent.VK_DOWN) {
-//            System.out.println("Down");
-//            dy += 1;
-//        }
-//    }
-//
-//    @Override
-//    public void keyReleased(KeyEvent e
-//    ) {
-//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-//    }
 }
-
-//                double pythagsTest = Math.sqrt(Math.pow(xPos - xPos[k], 2) + Math.pow(yPos - yPos[k], 2));    //Calculates distance between two balls. 
-/**
- * Trashed drag profile
- */
-////        if (dragXc > Math.pow(dragX, 2) dragX * Math.sqrt(dragX * 10) && rSpeed != 0) {
-//        if (dragXc > dragX * Math.sqrt(dragX * 10) && rSpeed != 0) {
-//            dragX++;
-//            dragXc = 0;
-////            System.out.println("Moving xPos");
-//            xPos += rSpeed;
-//
-//        } else if (rSpeed != 0) {
-//
-//            if (dragXc > 30000) {
-////                dragXc += dragXc);
-//                rSpeed--;
-//                if (rSpeed > 0) {
-//                    rSpeed--;
-//                } else if (rSpeed < 0) {
-//                    rSpeed++;
-//                } else if (rSpeed == 0) {
-//                    dragXc = 1;
-//                    dragX = 0;
-//                }
-//            } else {
-//                dragXc += 1000;
-//            }
-////            System.out.println(dragXc * 1000 + ", " + Math.pow(dragX, 2) * Math.sqrt(dragX * 10) + ", " + dragX);
-//
-//        }
-//
-//        if (dragYc > dragY * Math.sqrt(dragY * 10) && dy != 0) {
-//            dragY++;
-//            dragYc = 0;
-////            System.out.println("Moving yPos");
-//            yPos += dy;
-//
-//        } else if (dy != 0) {
-//
-//            if (dragYc > 30000) {
-////                dragXc += dragXc);
-//                dy--;
-//                if (dy > 0) {
-//                    dy--;
-//                } else if (dy < 0) {
-//                    dy++;
-//                } else if (dy == 0) {
-//                    dragYc = 1;
-//                    dragY = 0;
-//                }
-//            } else {
-//                dragYc += 1000;
-//            }
-////            System.out.println(dragYc * 1000 + ", " + Math.pow(dragY, 2) * Math.sqrt(dragY * 10) + ", " + dragY);
-//
-//        }
-//#############Linear drag
-//        if (dy > 0) {
-//            dy += -(drag);
-//        } else if (dy < 0) {
-//            dy += (drag);
-//        }
-//#################Drawing a square instead
-//        g.setColor(Color.red);
-//        Rectangle myShape = new Rectangle(-radius, -radius, radius * 2, radius * 2);
-//        g2d.translate(xPos / 1000, yPos / 1000);
-//        g2d.rotate(Math.toRadians(aThrottle));
-//        g2d.draw();
-//        g2d.fill(myShape);
-//######################Other garbage tests
-////        double locationX = scale * rPic.getWidth() / 2;
-////        double locationY = scale * rPic.getHeight() / 2;
-//        double locationX = getWidth() / 2;
-//        double locationY = getHeight() / 2;
-//
-//        AffineTransform tx = AffineTransform.getRotateInstance(Math.toRadians(aThrottle), locationY, locationY);
-////        tx.scale(scale, scale);
-//        AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_BILINEAR);
-////        g2d.drawImage(op.filter(rPic, null), getWidth() - rPic.getHeight(), getHeight() - rPic.getHeight(), null);
-//        g2d.drawImage(op.filter(rPic, null), getWidth() - rPic.getHeight(), getHeight() /2 - rPic.getHeight(), null);
-//###############For square window 
-//        if (xPos < 00000) {                                             //Detects if the ball tries to cross the left perimeter
-////            rSpeed = Math.abs(rSpeed);                                        //absolute value 
-//            xPos = (getWidth() - 00000) * 1000;
-//        }
-//        if (xPos > (getWidth() - 00000) * 1000) { //Detects if the ball tries to cross the right perimeter
-//            //            rSpeed = -Math.abs(rSpeed);
-//            xPos = 0;
-//        }
-//
-//        if (yPos < 00000) {                                             //Detects if the ball tries to cross the top perimeter
-////            dy = Math.abs(dy);
-//            yPos = (getHeight() - 00000) * 1000;
-//
-//        }
-//        if (yPos > (getHeight() - 00000) * 1000) {                               //Detects if the ball tries to cross the bottom perimeter
-////            dy = -Math.abs(dy);
-//            yPos = 0;
-//        }
-//#####################Old Controls
-//            if (key == KeyEvent.VK_LEFT) {
-//                System.out.println("Left");
-////                    dragX = 1;
-//
-//                if (aSpeed > -10) {
-//                    aSpeed--;
-//
-//                }
-//
-//            }
-//
-//            if (key == KeyEvent.VK_RIGHT) {
-//                System.out.println("Right");
-//
-//                if (aSpeed < 10) {
-//                    aSpeed++;
-//                }
-//            }
-//
-//            if (key == KeyEvent.VK_UP) {
-//                System.out.println("Up");
-////                rSpeed += -1000;
-//
-//                sThrottle += 0.1;
-//                if (sThrottle > 1) {
-//                    sThrottle = 1;
-//                }
-//            }
-//
-//            if (key == KeyEvent.VK_DOWN) {
-//                System.out.println("Down");
-////                rSpeed = 000;
-//
-//                sThrottle -= 0.1;
-//                if (sThrottle < 0) {
-//                    sThrottle = 0;
-//                }
-//
-//            }
-//###########Planet Display
-//        pYpos = (long) ((xPos) / 1000 * 1 + (getHeight() + (rPic.getHeight() * zScale)) / 2);
-//        pYpos = (long) (((altitudeToPlanetCenter) * 1 - pScale) / 100000 + (getHeight() + (rPic.getHeight() * zScale)) / 2);
-//        pYpos = (long) ((((altitudeToPlanetCenter) * 1 - pScale) / 100000 + (getHeight() + (rPic.getHeight())) / 2) * zScale);
-//        g.fillOval(pXpos, pYpos, pScale, pScale);
