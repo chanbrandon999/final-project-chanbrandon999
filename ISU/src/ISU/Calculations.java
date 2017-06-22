@@ -34,9 +34,7 @@ class Calculations {
     boolean resetAngle;
     double holdAngle = angle;
     double intermediateAngle;
-    boolean firstSlowDone;
     int foo;
-    boolean firstCheck = true;
     double[] paSpeed = new double[2];
 
     Random rand = new Random(); //Random number generator
@@ -192,67 +190,20 @@ class Calculations {
 
 //    public void controls(double[] passThrough) {
     private void rotationControl(int choice) {
-        if (firstCheck == true && choice != 0) { //goes off when clearing choices pressed 
-            holdAngle = angle;
-            intermediateAngle = (holdAngle - angle) / 2 + angle;
-            firstSlowDone = false;
-            foo = 1;
-        }
 
         if (choice == 1) {
-//            System.out.println(Math.signum(paSpeed[0]) + ", " + Math.signum(paSpeed[1]));
-            if (Math.signum(paSpeed[0]) * Math.signum(paSpeed[1]) == -1) {
-                System.out.println("########Change angle##########");
-                intermediateAngle = (holdAngle - angle) / 2 + angle;
-                System.out.println("Intermediate: " + intermediateAngle + ", angle: " + angle + ", hangle" + holdAngle);
-                firstSlowDone = true;
-
-                System.out.println("########Change angle##########");
-            }
-
             if (aSpeed > 0.01 ) {
                 aSpeed -= 0.01;
-//                if (aSpeed < 3) {
-//                    foo = 0;
-//                }
             } else if (aSpeed < -0.01) {
                 aSpeed += 0.01;
-//                if (aSpeed > -3) {
-//                    foo = 0;
-//                }
-//            } else if (&& firstSlowDone == false) {
-//                if ((holdAngle + 180) % 360 > angle && angle > holdAngle) {
-//                    System.out.println("11 " + (angle + 180) % 360);
-////                    if (intermediateAngle < angle) {
-////                        aSpeed -= 0.01;
-////                    } else {
-////                        aSpeed += 0.01;
-////                    }
-//                    aSpeed += 0.01;
-//                } else if ((holdAngle + 180) % 360 < angle && angle < holdAngle) {
-//                    System.out.println("22" + angle);
-////                    if (intermediateAngle > angle) {
-////                        aSpeed -= 0.01;
-////                        System.out.println("This one");
-////                    } else {
-////                        System.out.println("Other One");
-////                        aSpeed -= 0.01;
-////                    }
-//                    aSpeed -= 0.01;
-                
             } else {
                 aSpeed = 0;
-                foo = 1;
             }
-
             paSpeed[0] = paSpeed[1];
             paSpeed[1] = aSpeed;
-            firstCheck = false;
-
+        } else if (choice == 2) {
         } else if (choice == 0) {
-            firstSlowDone = false;
 
-            firstCheck = true;
         }
     }
     
@@ -273,7 +224,6 @@ class Calculations {
 
         if (passThrough1[6] == 1) {
 //            System.out.println("Left");
-//            passThrough1[8] = 0; //Controlls = 0
 
             if (aSpeed > -10) {
                 aSpeed -= 0.01;
@@ -284,8 +234,6 @@ class Calculations {
 
         if (passThrough1[7] == 1) {
 //            System.out.println("Right");
-//            passThrough1[8] = 0;
-            foo = 0;
             if (aSpeed < 10) {
                 aSpeed += 0.01;
             }
