@@ -196,61 +196,53 @@ class Calculations {
             holdAngle = angle;
             intermediateAngle = (holdAngle - angle) / 2 + angle;
             firstSlowDone = false;
-            foo = 0;
+            foo = 1;
         }
 
         if (choice == 1) {
-            System.out.println(Math.signum(paSpeed[0]) + ", " + Math.signum(paSpeed[1]));
+//            System.out.println(Math.signum(paSpeed[0]) + ", " + Math.signum(paSpeed[1]));
             if (Math.signum(paSpeed[0]) * Math.signum(paSpeed[1]) == -1) {
                 System.out.println("########Change angle##########");
                 intermediateAngle = (holdAngle - angle) / 2 + angle;
-                System.out.println("Intermediate: " + intermediateAngle + ", angle: " + angle);
+                System.out.println("Intermediate: " + intermediateAngle + ", angle: " + angle + ", hangle" + holdAngle);
                 firstSlowDone = true;
 
-//                foo++;
-//                if (foo == 5) {
-//                    firstSlowDone = true;
-//                    foo = 0;
-//                } else {
-//                    firstSlowDone = false;
-//                }
                 System.out.println("########Change angle##########");
             }
-            if (firstSlowDone == false) {
-                if ((angle + 180) % 360 < holdAngle) {
-//                if ((angle - 180) % 360 > holdAngle) {
-                    if (intermediateAngle < angle) {
-//                        System.out.println("Slowing1");
-                        aSpeed -= 0.01;
-//                        System.out.println("s32");
-                    } else {
-                        aSpeed += 0.01;
-//                        System.out.println("sef");
-                    }
-//                tempDir = 1;
-                }
-                if ((angle - 180) % 360 > holdAngle) {
-//                if ((angle + 180) % 360 < holdAngle) {
 
-                    if (intermediateAngle > angle) {
-//                        System.out.println("Slowing2");
-                        aSpeed += 0.01;
-//                        System.out.println("sdf");
-                    } else {
-                        aSpeed -= 0.01;
-//                        System.out.println("sdf");
-                    }
-//                tempDir = -1;
-                }
-//                System.out.println("Do stuff there");
-            } else {
-//                if (angle < holdAngle) {
-//                    aSpeed += 0.0001;
-//                } else if (angle > holdAngle) {
-//                    aSpeed -= 0.0001;
+            if (aSpeed > 0.01 ) {
+                aSpeed -= 0.01;
+//                if (aSpeed < 3) {
+//                    foo = 0;
 //                }
+            } else if (aSpeed < -0.01) {
+                aSpeed += 0.01;
+//                if (aSpeed > -3) {
+//                    foo = 0;
+//                }
+//            } else if (&& firstSlowDone == false) {
+//                if ((holdAngle + 180) % 360 > angle && angle > holdAngle) {
+//                    System.out.println("11 " + (angle + 180) % 360);
+////                    if (intermediateAngle < angle) {
+////                        aSpeed -= 0.01;
+////                    } else {
+////                        aSpeed += 0.01;
+////                    }
+//                    aSpeed += 0.01;
+//                } else if ((holdAngle + 180) % 360 < angle && angle < holdAngle) {
+//                    System.out.println("22" + angle);
+////                    if (intermediateAngle > angle) {
+////                        aSpeed -= 0.01;
+////                        System.out.println("This one");
+////                    } else {
+////                        System.out.println("Other One");
+////                        aSpeed -= 0.01;
+////                    }
+//                    aSpeed -= 0.01;
+                
+            } else {
                 aSpeed = 0;
-//                System.out.println("Slow Part, desired angle: " + holdAngle + ", current: " + angle);
+                foo = 1;
             }
 
             paSpeed[0] = paSpeed[1];
@@ -259,10 +251,11 @@ class Calculations {
 
         } else if (choice == 0) {
             firstSlowDone = false;
-            foo = 0;
+
             firstCheck = true;
         }
     }
+    
     int tempAngle = 0;
     int tempAngle2 = 0;
 
