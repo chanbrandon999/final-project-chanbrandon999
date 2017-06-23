@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite errors="0" failures="0" hostname="Aerisoubg-D" name="ISU.CalculationsTest" skipped="0" tests="6" time="0.408" timestamp="2017-06-23T00:29:19">
+<testsuite errors="0" failures="0" hostname="Aerisoubg-D" name="ISU.CalculationsTest" skipped="0" tests="7" time="0.435" timestamp="2017-06-23T01:00:22">
   <properties>
     <property name="netbeans.autoupdate.country" value="CA" />
     <property name="javac.test.classpath" value=":build/classes:D:\Program Files\NetBeans 8.2\platform\modules\ext\junit-4.12.jar:D:\Program Files\NetBeans 8.2\platform\modules\ext\hamcrest-core-1.3.jar" />
@@ -37,7 +37,7 @@
     <property name="user.name" value="Someone" />
     <property name="copylibs.rebase" value="true" />
     <property name="libs.swing-layout.maven-pom" value="" />
-    <property name="sun.java.command" value="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner ISU.CalculationsTest skipNonTests=false filtertrace=true haltOnError=false haltOnFailure=false showoutput=true outputtoformatters=true logfailedtests=true threadid=0 logtestlistenerevents=true formatter=org.apache.tools.ant.taskdefs.optional.junit.BriefJUnitResultFormatter formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,D:\Documents\50 - GitHub\final-project-chanbrandon999\ISU\build\test\results\TEST-ISU.CalculationsTest.xml crashfile=D:\Documents\50 - GitHub\final-project-chanbrandon999\ISU\build\junitvmwatcher8612815064847383592.properties propsfile=D:\Documents\50 - GitHub\final-project-chanbrandon999\ISU\build\junit8022835562697647867.properties" />
+    <property name="sun.java.command" value="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner ISU.CalculationsTest skipNonTests=false filtertrace=true haltOnError=false haltOnFailure=false showoutput=true outputtoformatters=true logfailedtests=true threadid=0 logtestlistenerevents=true formatter=org.apache.tools.ant.taskdefs.optional.junit.BriefJUnitResultFormatter formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,D:\Documents\50 - GitHub\final-project-chanbrandon999\ISU\build\test\results\TEST-ISU.CalculationsTest.xml crashfile=D:\Documents\50 - GitHub\final-project-chanbrandon999\ISU\build\junitvmwatcher48964451592948434.properties propsfile=D:\Documents\50 - GitHub\final-project-chanbrandon999\ISU\build\junit2659531633494626383.properties" />
     <property name="build.classes.dir" value="build/classes" />
     <property name="netbeans.accept_license_class" value="org.netbeans.license.AcceptLicense" />
     <property name="build.sysclasspath" value="ignore" />
@@ -308,11 +308,12 @@
     <property name="platform.active" value="default_platform" />
     <property name="awt.toolkit" value="sun.awt.windows.WToolkit" />
   </properties>
-  <testcase classname="ISU.CalculationsTest" name="testTrigAngle_String_double" time="0.002" />
+  <testcase classname="ISU.CalculationsTest" name="testTrigAngle_String_double" time="0.0" />
   <testcase classname="ISU.CalculationsTest" name="testleftORright" time="0.0" />
   <testcase classname="ISU.CalculationsTest" name="testTravelAngle" time="0.0" />
   <testcase classname="ISU.CalculationsTest" name="testTrigAngle_3args" time="0.0" />
   <testcase classname="ISU.CalculationsTest" name="testControls" time="0.0" />
+  <testcase classname="ISU.CalculationsTest" name="testFixAngle" time="0.0" />
   <testcase classname="ISU.CalculationsTest" name="testPositionUpdate" time="0.0" />
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>

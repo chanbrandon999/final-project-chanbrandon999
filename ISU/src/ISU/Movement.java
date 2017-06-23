@@ -25,6 +25,7 @@ import java.awt.RenderingHints;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.ImageFilter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 class Movement extends JPanel implements ActionListener, MouseWheelListener {
@@ -61,11 +62,15 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
     BufferedImage e3 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
     BufferedImage e4 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
     BufferedImage e5 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage arrow = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage arrow2 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage angles = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
 //    BufferedImage starBkg = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
     double zScale = 0.3;
 
     /**
-     * Initializes the game and game components 
+     * Initializes the game and game components
+     *
      * @param width The width of the window
      * @param height the Height of the window
      */
@@ -80,6 +85,9 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
             e3 = ImageIO.read(new File("e3.png"));
             e4 = ImageIO.read(new File("e4.png"));
             e5 = ImageIO.read(new File("e5.png"));
+            arrow = ImageIO.read(new File("Arrow.png"));
+            arrow2 = ImageIO.read(new File("Arrow2.png"));
+            angles = ImageIO.read(new File("Angles.png"));
 
         } catch (IOException e) {
             System.out.println(e);
@@ -135,6 +143,11 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
         repaint();
     }
 
+    /**
+     * Paints all the elements onto the screen
+     *
+     * @param g
+     */
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -150,6 +163,7 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
             at.scale(zScale, zScale);
             at.rotate(Math.toRadians(angle), rPic.getWidth() / 2, rPic.getHeight() / 2);
             g2d.drawImage(rPic, at, this);
+            dispControls(g);
         } else {
 //            System.out.println("Display Image");
 //            g2d.drawImage(rPic, 200, 200, 200, 200, this);
@@ -164,30 +178,32 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
 
     }
 
-    
     /**
-     * This method displays 2 or 3 explosion animations randomly around the rocket. 
-     * @param g 
+     * This method displays 2 or 3 explosion animations randomly around the
+     * rocket.
+     *
+     * @param g
      */
     private void dispExplosion(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
+        int eSz = (int) (550 * zScale);
 
         for (int i = 0; i < rand.nextInt(2) + 2; i++) {
             switch (rand.nextInt(5) + 1) {
                 case 1:
-                    g2d.drawImage(e1, getExpPos('w'), getExpPos('h'), 400, 400, this);
+                    g2d.drawImage(e1, getExpPos('w', eSz), getExpPos('h', eSz), eSz, eSz, this);
                     break;
                 case 2:
-                    g2d.drawImage(e2, getExpPos('w'), getExpPos('h'), 400, 400, this);
+                    g2d.drawImage(e2, getExpPos('w', eSz), getExpPos('h', eSz), eSz, eSz, this);
                     break;
                 case 3:
-                    g2d.drawImage(e3, getExpPos('w'), getExpPos('h'), 400, 400, this);
+                    g2d.drawImage(e3, getExpPos('w', eSz), getExpPos('h', eSz), eSz, eSz, this);
                     break;
                 case 4:
-                    g2d.drawImage(e4, getExpPos('w'), getExpPos('h'), 400, 400, this);
+                    g2d.drawImage(e4, getExpPos('w', eSz), getExpPos('h', eSz), eSz, eSz, this);
                     break;
                 case 5:
-                    g2d.drawImage(e5, getExpPos('w'), getExpPos('h'), 400, 400, this);
+                    g2d.drawImage(e5, getExpPos('w', eSz), getExpPos('h', eSz), eSz, eSz, this);
                     break;
             }
 
@@ -196,22 +212,26 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
 
     /**
      * Returns positions around the center where the rocket would blow up
-     * @param x The length or width of the explosion coordinate 
-     * @return Random coordinates around the center of the screen (where the rocket would be)
+     *
+     * @param x The length or width of the explosion coordinate
+     * @return Random coordinates around the center of the screen (where the
+     * rocket would be)
      */
-    private int getExpPos(char x) {     
+    private int getExpPos(char x, int eSz) {
         if (x == 'w') {
 
-            return ((-200) + (rand.nextInt(100) - 50) + getWidth() / 2);
+            return (int) (-(eSz / 2) + (rand.nextInt(100) - 50) * zScale + getWidth() / 2);
         } else if (x == 'h') {
-            return ((-200) + (rand.nextInt(100) - 50) + getHeight() / 2);
+            return (int) (-(eSz / 2) + (rand.nextInt(100) - 50) * zScale + getHeight() / 2);
         }
         return 0;
 
     }
-    
+
     /**
-     * Displays the scenery needed in the rocket program. Displays the atmosphere, the stars and the planet. 
+     * Displays the scenery needed in the rocket program. Displays the
+     * atmosphere, the stars and the planet.
+     *
      * @param g The graphics object to help display the components
      */
     private void dispScenery(Graphics g) {
@@ -276,6 +296,26 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
             zScale = 1;
         }
 //        System.out.println("zScale: " + zScale);
+    }
+
+    private void dispControls(Graphics g) {
+        Graphics2D g2d = (Graphics2D) g;
+        g.setColor(Color.blue);
+        g.fillOval((getWidth()) / 2 - 100, getHeight() - 200, 200, 200);
+        g.setColor(Color.white);
+        g.fillOval((getWidth()) / 2 - 100 + 5, getHeight() - 200 + 5, 190, 190);
+        g.drawImage(angles, getWidth() / 2 - 100 + 5, getHeight() - 200 + 5, 190, 190, this);
+        
+        AffineTransform at = new AffineTransform();
+        at.translate(((getWidth() / 2) - 128 + 1), (getHeight() - 256 + 57.5 / 2) * 1);  //Don't touch, draws the spinning arrow
+        at.rotate(Math.toRadians(angle), arrow.getWidth() / 2, arrow.getHeight() / 2); //No
+        g2d.drawImage(arrow, at, this);
+        AffineTransform at2 = new AffineTransform();
+        at2.translate(((getWidth() / 2) - 128 + 1), (getHeight() - 256 + 57.5 / 2) * 1);  //Don't touch, draws the spinning arrow
+        at2.rotate(Math.toRadians(c.travelAngle(rXSpeed, rYSpeed)), arrow.getWidth() / 2, arrow.getHeight() / 2); //No
+        g2d.drawImage(arrow2, at2, this);
+        
+        ;
     }
 
     private class TAdapter extends KeyAdapter {
@@ -363,23 +403,37 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
                 }
 
             }
-            if (key == KeyEvent.VK_1) {
+            if (key == KeyEvent.VK_1) { //Stable Heading
                 if (passThroughI[8] != 1) {
                     passThroughI[8] = 1;
                 } else {
                     passThroughI[8] = 0;
                 }
             }
-            if (key == KeyEvent.VK_2) {
+            if (key == KeyEvent.VK_2) {//Prograde
                 if (passThroughI[8] != 2) {
                     passThroughI[8] = 2;
                 } else {
                     passThroughI[8] = 0;
                 }
             }
-            if (key == KeyEvent.VK_3) {
+            if (key == KeyEvent.VK_3) {//Right
                 if (passThroughI[8] != 3) {
                     passThroughI[8] = 3;
+                } else {
+                    passThroughI[8] = 0;
+                }
+            }
+            if (key == KeyEvent.VK_4) {//Retrograde
+                if (passThroughI[8] != 4) {
+                    passThroughI[8] = 4;
+                } else {
+                    passThroughI[8] = 0;
+                }
+            }
+            if (key == KeyEvent.VK_5) {//Left
+                if (passThroughI[8] != 5) {
+                    passThroughI[8] = 5;
                 } else {
                     passThroughI[8] = 0;
                 }
@@ -388,6 +442,15 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
             if (key == KeyEvent.VK_F3) {
 //                System.out.println("Explode on demand!");
                 passThroughI[9] = 0.8103;
+            }
+
+            if (key == KeyEvent.VK_M) {//Left
+
+//                if (passThroughI[8] != 5) {
+//                    passThroughI[8] = 5;
+//                } else {
+//                    passThroughI[8] = 0;
+//                }
             }
 
         }

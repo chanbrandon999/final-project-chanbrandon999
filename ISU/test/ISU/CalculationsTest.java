@@ -53,5 +53,13 @@ public class CalculationsTest {
         assertEquals(180,(int) travelAngle(0, -1));
         assertEquals(270,(int) travelAngle(-1, 0));
     }
+    
+        @Test
+    public void testFixAngle() {
+        assertEquals(350,(int) c.fix(-10));
+        assertEquals(10,(int) c.fix(10));
+        assertEquals(180,(int) c.fix(180));
+        
+    }
 
 }

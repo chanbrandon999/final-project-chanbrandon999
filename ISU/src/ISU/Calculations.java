@@ -29,16 +29,16 @@ class Calculations {
     double xAccel = 0, yAccel = 0;
 //    boolean[] isPressed = new boolean[4];
     double[] passThrough1 = new double[10];
-    int i = 0;
+
     int tDelayI = 10;
     int tDelay = 1000 / tDelayI;
 
     boolean resetAngle;
     double hAngle[] = new double[4];
     double intermediateAngle;
-    int iSet;
+    boolean slowSpin = true;
     double[] paSpeed = new double[2];
-    boolean firstSlowDone;
+    int aSpeedChange;
 
     Random rand = new Random(); //Random number generator
     double zScale = 0.3;
@@ -59,7 +59,7 @@ class Calculations {
         frame2.setVisible(true);
         frame2.setResizable(true);
         frame2.setSize(600, 300);
-        frame2.setLocation(700, 50);
+        frame2.setLocation(1250, 50);
 
         if (false) {
             xPos = 0;
@@ -74,7 +74,6 @@ class Calculations {
             rYSpeed = -1000;
         }
 
-//        frame2.toOutputWindow(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
 
     /**
@@ -235,27 +234,19 @@ class Calculations {
 
     private void rotationControl(int choice) {
 
+        if ((Math.sqrt(Math.pow(rYSpeed, 2) + Math.pow(rXSpeed, 2))) == 0 && choice != 1) {
+            return;
+        }
+
         hAngle[0] = travelAngle(rXSpeed, rYSpeed);
         hAngle[1] = hAngle[0] + 90;
         hAngle[2] = hAngle[1] + 90;
         hAngle[3] = hAngle[2] + 90;
 
-//        if (choice != 0) {
-//            if (passThrough1[6] == 1) {
-//                angle -= 0.1;
-//                hAngle[i] = angle;
-//            }
-//            if (passThrough1[7] == 1) {
-//                angle += 0.1;
-//                hAngle[i] = angle;
-//
-//            }
-//        }
         if (choice != 0 && resetAngle == true) {
-            System.out.println("RAN ONCE ######$%");
+//            System.out.println("RAN ONCE ######$%");
             resetAngle = false;
-//            hAngle[i] = fix(angle);
-            iSet = 0;
+            slowSpin = false;
             intermediateAngle = 0;
         }
 
@@ -267,17 +258,9 @@ class Calculations {
             } else {
                 aSpeed = 0;
             }
-
-        } else if (choice == 2) {
-            rotateTo(0);
-        } else if (choice == 3) {
-            rotateTo(1);
-        } else if (choice == 4) {
-            rotateTo(2);
-        } else if (choice == 5) {
-            rotateTo(3);
-
-        } else if (choice == 0) {
+        } else if (2 <= choice && choice <= 5) {
+            rotateTo(choice - 2);
+        } else if (resetAngle != true) {
             resetAngle = true;
         }
     }
@@ -290,7 +273,7 @@ class Calculations {
         } else if (Math.signum(xSpeed) == -1 && Math.signum(ySpeed) == -1) {
             return (((Math.toDegrees(Math.atan(xSpeed / ySpeed)))) + 180);
         } else if (Math.signum(xSpeed) == -1 && Math.signum(ySpeed) == 1) {
-            return ((Math.abs(Math.toDegrees(Math.atan(xSpeed / ySpeed)))) + 270);
+            return (360 - (Math.abs(Math.toDegrees(Math.atan(xSpeed / ySpeed)))));
 //##############################################################################
         } else if (Math.signum(xSpeed) == 0 && Math.signum(ySpeed) == 1) {
             return 0;
@@ -313,34 +296,30 @@ class Calculations {
      * @param SASpos The selection of location to rotate towards
      */
     private void rotateTo(int SASpos) {
-        if (Math.signum(paSpeed[0]) * Math.signum(paSpeed[1]) == -1) {
+        System.out.println("is opposite: " + (fix(angle) > fix(hAngle[SASpos] + 178) && fix(angle) < fix(hAngle[SASpos] - 178)) + ", " + fix(hAngle[SASpos] - 182));
+        if (Math.signum(paSpeed[0]) * Math.signum(paSpeed[1]) == -1 || (fix(angle) > fix(hAngle[SASpos] + 178) && fix(angle) < fix(hAngle[SASpos] - 178))) {
             intermediateAngle = Math.abs((hAngle[SASpos] - fix(angle)) / 2 + fix(angle));
-//                System.out.println("###Intermediate: " + intermediateAngle + ", FA(angle): " + fix(angle) + ", holdAngle" + hAngle[i]);
-            iSet = 1;
+            slowSpin = true;
         }
-//        if (fix(angle) < hAngle[SAS] + 1 && fix(angle) > hAngle[SAS] - 1) {
 
-//            if (aSpeed > 0.01) {
-//                aSpeed -= 0.01;
-//            } else if (aSpeed < -0.01) {
-//                aSpeed += 0.01;
-//            } else {
-//                aSpeed = 0;
-//            }
-//            System.out.println("55");
-//        } else 
-        if (intermediateAngle > fix(angle) && iSet == 1 && leftORright(angle, hAngle[SASpos]) == -1) {
-            aSpeed += 0.01;
-            System.out.println("33: " + hAngle[i] + ", current: " + fix(angle));
-        } else if (intermediateAngle < fix(angle) && iSet == 1 && leftORright(angle, hAngle[SASpos]) == 1) {
-            System.out.println("44: " + hAngle[i] + ", current: " + fix(angle));
-
+        if (aSpeed > 2) {
             aSpeed -= 0.01;
+        } else if (aSpeed < -2) {
+            aSpeed += 0.01;
+        } else //
+        //            
+        if (intermediateAngle > fix(angle) && slowSpin == true && leftORright(angle, hAngle[SASpos]) == -1) {
+            aSpeed += 0.01;
+            System.out.println("33: " + hAngle[SASpos] + ", current: " + fix(angle));
+        } else if (intermediateAngle < fix(angle) && slowSpin == true && leftORright(angle, hAngle[SASpos]) == 1) {
+            System.out.println("44: " + hAngle[SASpos] + ", current: " + fix(angle));
+            aSpeed -= 0.01;
+//            
         } else if (leftORright(angle, hAngle[SASpos]) == -1) {
-            System.out.println("11: " + hAngle[i] + ", current: " + fix(angle));
+            System.out.println("11: " + hAngle[SASpos] + ", current: " + fix(angle));
             aSpeed -= 0.01;
         } else if (leftORright(angle, hAngle[SASpos]) == 1) {
-            System.out.println("22: " + hAngle[i] + ", current: " + fix(angle));
+            System.out.println("22: " + hAngle[SASpos] + ", current: " + fix(angle));
             aSpeed += 0.01;
         } else {
             if (aSpeed > hAngle[SASpos]) {
@@ -356,11 +335,34 @@ class Calculations {
         paSpeed[1] = aSpeed;
     }
 
-    private double fix(double angle) {
+    /**
+     * Changes negative angles to positive angles
+     *
+     * @param angle The angle to see if it needs fixing
+     * @return The fixed angle from 0 < to < 360
+     */
+    public double fix(double angle) {
         if (Math.signum(angle) == -1) {
             return (360 + angle);
         }
         return angle;
+    }
+
+    /**
+     *
+     * @param plusORminus
+     * @return
+     */
+    public double aSpeedChange(int plusORminus) {
+        aSpeedChange++;
+        if (aSpeedChange % 3 == 0) {
+            return 0;
+        } else if (plusORminus == 1) {
+            return 0.01;
+        } else if (plusORminus == -1) {
+            return -0.01;
+        }
+        return 0;
     }
 
     /**
@@ -411,8 +413,8 @@ class Calculations {
             xPos = 0;
             yPos = (pRadius + 100000) * accuracy;
 //        rXSpeed = 2427 * 2 * 100;
-            rXSpeed = 2427 * 3 * 1 - 177.25;
-//        rXSpeed = 2428 * 2;
+//            rXSpeed = 2427 * 3 * 1 - 177.25;
+            rXSpeed = 2243 * 1;
             rYSpeed = 0;
         }
 
@@ -440,6 +442,56 @@ class Calculations {
         }
 
     }
+
+    //Setters
+    public void setxPos(double xPos) {
+        this.xPos = xPos;
+    }
+
+    public void setyPos(double yPos) {
+        this.yPos = yPos;
+    }
+
+    public void setaThrottle(double aThrottle) {
+        this.aThrottle = aThrottle;
+    }
+
+    public void setaSpeed(double aSpeed) {
+        this.aSpeed = aSpeed;
+    }
+
+    public void setAngle(double angle) {
+        this.angle = angle;
+    }
+
+    public void setrXSpeed(double rXSpeed) {
+        this.rXSpeed = rXSpeed;
+    }
+
+    public void setrYSpeed(double rYSpeed) {
+        this.rYSpeed = rYSpeed;
+    }
+
+    public void setsThrottle(double sThrottle) {
+        this.sThrottle = sThrottle;
+    }
+
+    public void setDrag(long drag) {
+        this.drag = drag;
+    }
+
+    public void setrMass(double rMass) {
+        this.rMass = rMass;
+    }
+
+    public void setrThrust(long rThrust) {
+        this.rThrust = rThrust;
+    }
+
+    public void setzScale(double zScale) {
+        this.zScale = zScale;
+    }
+
 }
 
 //##########################NEW GARBAGE CODE###################################
