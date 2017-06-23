@@ -151,11 +151,6 @@ public class OutputWindow extends javax.swing.JFrame {
         this.jTextField7.setText("xSpeed: " + xSpeed / 1 + ", \t ySpeed: " + ySpeed / 1);
 
     }
-    
-    public void test()  {
-//        jTextField1.setText("Hi" + 123);
-    }
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField jTextField1;

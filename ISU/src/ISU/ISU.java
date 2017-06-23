@@ -14,16 +14,16 @@ import javax.swing.JFrame;
 public class ISU {
 
     /**
+     * Creates and displays the Movement class Window
      * @param args the command line arguments
      */
     private static void createAndShowGUI() {
-
 
         JFrame frame = new JFrame("Rocket Simulation");
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        int setX = 700, setY = 700; //Flexible window dimensions for balls 
+        int setX = 700, setY = 700; //Flexible window dimensions
         Movement mvmnt = new Movement(setX, setY);
         frame.add(mvmnt);
         frame.setSize(setX, setY);

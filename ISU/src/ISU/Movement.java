@@ -56,25 +56,30 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
 
     Random rand = new Random(); //Random number generator
     BufferedImage rPic = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
-    BufferedImage explosion1 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
-    BufferedImage explosion2 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
-    BufferedImage explosion3 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
-    BufferedImage explosion4 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
-    BufferedImage explosion5 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
-    BufferedImage starBkg = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage e1 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage e2 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage e3 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage e4 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage e5 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+//    BufferedImage starBkg = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
     double zScale = 0.3;
 
+    /**
+     * Initializes the game and game components 
+     * @param width The width of the window
+     * @param height the Height of the window
+     */
     public Movement(int width, int height) {
 
         try {
 
             rPic = ImageIO.read(new File("Rocket.png"));
 //            starBkg = ImageIO.read(new File("Stars.jpeg"));
-            explosion1 = ImageIO.read(new File("e1.png"));
-            explosion2 = ImageIO.read(new File("e2.png"));
-            explosion3 = ImageIO.read(new File("e3.png"));
-            explosion4 = ImageIO.read(new File("e4.png"));
-            explosion5 = ImageIO.read(new File("e5.png"));
+            e1 = ImageIO.read(new File("e1.png"));
+            e2 = ImageIO.read(new File("e2.png"));
+            e3 = ImageIO.read(new File("e3.png"));
+            e4 = ImageIO.read(new File("e4.png"));
+            e5 = ImageIO.read(new File("e5.png"));
 
         } catch (IOException e) {
             System.out.println(e);
@@ -112,8 +117,8 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
         if (passThroughF[1] == -1.192837465 && passThroughF[0] == -1.9182736465) {
             timer.stop();
 
-            if (blowUp == false) {
-                System.out.println("Switching timers");
+            if (blowUp == false) {  //Only use if it hasn't blown up yet
+//                System.out.println("Switching timers");
                 timer2 = new Timer(300, this);
                 timer2.start();
                 blowUp = true;
@@ -159,54 +164,65 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
 
     }
 
+    
+    /**
+     * This method displays 2 or 3 explosion animations randomly around the rocket. 
+     * @param g 
+     */
     private void dispExplosion(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
 
-        for (int i = 0; i < rand.nextInt(3) + 1; i++) {
+        for (int i = 0; i < rand.nextInt(2) + 2; i++) {
             switch (rand.nextInt(5) + 1) {
                 case 1:
-                    g2d.drawImage(explosion1, getExpPos('w'), getExpPos('h'), 400, 400, this);
+                    g2d.drawImage(e1, getExpPos('w'), getExpPos('h'), 400, 400, this);
                     break;
                 case 2:
-                    g2d.drawImage(explosion2, getExpPos('w'), getExpPos('h'), 400, 400, this);
+                    g2d.drawImage(e2, getExpPos('w'), getExpPos('h'), 400, 400, this);
                     break;
                 case 3:
-                    g2d.drawImage(explosion3, getExpPos('w'), getExpPos('h'), 400, 400, this);
+                    g2d.drawImage(e3, getExpPos('w'), getExpPos('h'), 400, 400, this);
                     break;
                 case 4:
-                    g2d.drawImage(explosion4, getExpPos('w'), getExpPos('h'), 400, 400, this);
+                    g2d.drawImage(e4, getExpPos('w'), getExpPos('h'), 400, 400, this);
                     break;
                 case 5:
-                    g2d.drawImage(explosion5, getExpPos('w'), getExpPos('h'), 400, 400, this);
+                    g2d.drawImage(e5, getExpPos('w'), getExpPos('h'), 400, 400, this);
                     break;
             }
 
         }
     }
 
-    private int getExpPos(char x) {     //Fix explosion positioning
+    /**
+     * Returns positions around the center where the rocket would blow up
+     * @param x The length or width of the explosion coordinate 
+     * @return Random coordinates around the center of the screen (where the rocket would be)
+     */
+    private int getExpPos(char x) {     
         if (x == 'w') {
-//            return 0;
-//            return ((-100) + (rand.nextInt(100) - 50) + 700 / 2);
+
             return ((-200) + (rand.nextInt(100) - 50) + getWidth() / 2);
         } else if (x == 'h') {
             return ((-200) + (rand.nextInt(100) - 50) + getHeight() / 2);
-//            return ((-100) + (rand.nextInt(100) - 50) + 700 / 2);
         }
         return 0;
 
     }
-
+    
+    /**
+     * Displays the scenery needed in the rocket program. Displays the atmosphere, the stars and the planet. 
+     * @param g The graphics object to help display the components
+     */
     private void dispScenery(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
 
+        //########Background atmosphere/space
         if (altitudeToPlanetCenter > (pRadius + pAHL)) {
             backColour = 0;
         } else {
             backColour = .7 - ((altitudeToPlanetCenter - pRadius) / pAHL) * 0.7;
         }
-
-        //########Background atmosphere/space
         g2d.setPaint(Color.getHSBColor((float) .55, (float) .71, (float) backColour));  //Last number for darkness 
         g2d.fillRect(0, 0, getWidth(), getHeight());
 
@@ -245,8 +261,7 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
     }
 
     @Override
-    public void mouseWheelMoved(MouseWheelEvent e
-    ) {
+    public void mouseWheelMoved(MouseWheelEvent e) {
         if (zScale >= 0.00005 && zScale <= 1) {
             if (e.getWheelRotation() > 0) {
                 zScale -= 0.25 * zScale;
@@ -260,10 +275,7 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
         } else if (zScale > 1.00001) {
             zScale = 1;
         }
-        System.out.println("zScale: " + zScale);
-//        System.out.println((getHeight() / 2 + ((rPic.getHeight() / 2) + (altitudeToPlanetCenter - pRadius) * accuracy) * zScale));
-//        System.out.println("3: " + ((altitudeToPlanetCenter - pRadius) * accuracy) * zScale);
-//        System.out.println("4: " + (int) pXpos + ", " + (int) pYpos + ", " + (int) Math.abs(pScale) + ", " + (int) Math.abs(pScale));
+//        System.out.println("zScale: " + zScale);
     }
 
     private class TAdapter extends KeyAdapter {
@@ -331,12 +343,12 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
             }
 
             if (key == KeyEvent.VK_Z) {
-//                System.out.println("Up");
+//                System.out.println("minThrottle");
                 passThroughI[4] = -1;
             }
 
             if (key == KeyEvent.VK_X) {
-//                System.out.println("Down");
+//                System.out.println("maxThrottle");
                 passThroughI[5] = 10;
             }
 
@@ -351,7 +363,6 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
                 }
 
             }
-
             if (key == KeyEvent.VK_1) {
                 if (passThroughI[8] != 1) {
                     passThroughI[8] = 1;
@@ -359,9 +370,23 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
                     passThroughI[8] = 0;
                 }
             }
+            if (key == KeyEvent.VK_2) {
+                if (passThroughI[8] != 2) {
+                    passThroughI[8] = 2;
+                } else {
+                    passThroughI[8] = 0;
+                }
+            }
+            if (key == KeyEvent.VK_3) {
+                if (passThroughI[8] != 3) {
+                    passThroughI[8] = 3;
+                } else {
+                    passThroughI[8] = 0;
+                }
+            }
 
             if (key == KeyEvent.VK_F3) {
-//                System.out.println("Down");
+//                System.out.println("Explode on demand!");
                 passThroughI[9] = 0.8103;
             }
 
