@@ -44,6 +44,7 @@ public class CalculationsTest {
         assertEquals(1, c.leftORright(10, 40)); //Should also turn right 
         assertEquals(-1, c.leftORright(10, -10)); //Should also turn right 
         assertEquals(1, c.leftORright(-10, 10)); //Should also turn right 
+        assertEquals(1, c.leftORright(355, 30)); //Should also turn right 
     }
     
     @Test

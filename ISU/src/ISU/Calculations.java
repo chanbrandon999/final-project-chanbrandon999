@@ -238,10 +238,10 @@ class Calculations {
             return;
         }
 
-        hAngle[0] = travelAngle(rXSpeed, rYSpeed);
-        hAngle[1] = hAngle[0] + 90;
-        hAngle[2] = hAngle[1] + 90;
-        hAngle[3] = hAngle[2] + 90;
+        hAngle[0] = fix(travelAngle(rXSpeed, rYSpeed));
+        hAngle[1] = fix(hAngle[0] + 90);
+        hAngle[2] = fix(hAngle[1] + 90);
+        hAngle[3] = fix(hAngle[2] + 90);
 
         if (choice != 0 && resetAngle == true) {
 //            System.out.println("RAN ONCE ######$%");
@@ -265,30 +265,6 @@ class Calculations {
         }
     }
 
-    public static double travelAngle(double xSpeed, double ySpeed) {
-        if (Math.signum(xSpeed) == 1 && Math.signum(ySpeed) == 1) {
-            return (((Math.toDegrees(Math.atan(xSpeed / ySpeed)))) + 0);
-        } else if (Math.signum(xSpeed) == 1 && Math.signum(ySpeed) == -1) {
-            return (((Math.toDegrees(Math.atan(xSpeed / ySpeed)))) + 180);
-        } else if (Math.signum(xSpeed) == -1 && Math.signum(ySpeed) == -1) {
-            return (((Math.toDegrees(Math.atan(xSpeed / ySpeed)))) + 180);
-        } else if (Math.signum(xSpeed) == -1 && Math.signum(ySpeed) == 1) {
-            return (360 - (Math.abs(Math.toDegrees(Math.atan(xSpeed / ySpeed)))));
-//##############################################################################
-        } else if (Math.signum(xSpeed) == 0 && Math.signum(ySpeed) == 1) {
-            return 0;
-        } else if (Math.signum(xSpeed) == 1 && Math.signum(ySpeed) == 0) {
-            return 90;
-        } else if (Math.signum(xSpeed) == 0 && Math.signum(ySpeed) == -1) {
-            return 180;
-        } else if (Math.signum(xSpeed) == -1 && Math.signum(ySpeed) == 0) {
-            return 270;
-        }
-
-        return 0;
-
-    }
-
     /**
      * Rotates towards specified location 0, 1, 2 or 3. These locations are
      * north/east/south/west of the direction of movement.
@@ -296,9 +272,11 @@ class Calculations {
      * @param SASpos The selection of location to rotate towards
      */
     private void rotateTo(int SASpos) {
-        System.out.println("is opposite: " + (fix(angle) > fix(hAngle[SASpos] + 178) && fix(angle) < fix(hAngle[SASpos] - 178)) + ", " + fix(hAngle[SASpos] - 182));
+        System.out.println("is opposite: " + (fix(angle) > fix(hAngle[SASpos] + 178) && fix(angle) < fix(hAngle[SASpos] - 178)) + ", " + fix(hAngle[SASpos] - 178));
         if (Math.signum(paSpeed[0]) * Math.signum(paSpeed[1]) == -1 || (fix(angle) > fix(hAngle[SASpos] + 178) && fix(angle) < fix(hAngle[SASpos] - 178))) {
+            System.out.println("#####################################################################");
             intermediateAngle = Math.abs((hAngle[SASpos] - fix(angle)) / 2 + fix(angle));
+            System.out.println("New intermediate: " + intermediateAngle);
             slowSpin = true;
         }
 
@@ -308,18 +286,18 @@ class Calculations {
             aSpeed += 0.01;
         } else //
         //            
-        if (intermediateAngle > fix(angle) && slowSpin == true && leftORright(angle, hAngle[SASpos]) == -1) {
+        if (leftORright(fix(angle), intermediateAngle) == 1 && slowSpin == true && leftORright(fix(angle), hAngle[SASpos]) == -1) {
+            System.out.print("33");
             aSpeed += 0.01;
-            System.out.println("33: " + hAngle[SASpos] + ", current: " + fix(angle));
-        } else if (intermediateAngle < fix(angle) && slowSpin == true && leftORright(angle, hAngle[SASpos]) == 1) {
-            System.out.println("44: " + hAngle[SASpos] + ", current: " + fix(angle));
+        } else if (leftORright(fix(angle), intermediateAngle) == -1 && slowSpin == true && leftORright(fix(angle), hAngle[SASpos]) == 1) {
+            System.out.print("44");
             aSpeed -= 0.01;
 //            
-        } else if (leftORright(angle, hAngle[SASpos]) == -1) {
-            System.out.println("11: " + hAngle[SASpos] + ", current: " + fix(angle));
+        } else if (leftORright(fix(angle), hAngle[SASpos]) == -1) {
+            System.out.print("11");
             aSpeed -= 0.01;
-        } else if (leftORright(angle, hAngle[SASpos]) == 1) {
-            System.out.println("22: " + hAngle[SASpos] + ", current: " + fix(angle));
+        } else if (leftORright(fix(angle), hAngle[SASpos]) == 1) {
+            System.out.print("22");
             aSpeed += 0.01;
         } else {
             if (aSpeed > hAngle[SASpos]) {
@@ -329,7 +307,9 @@ class Calculations {
             } else {
                 aSpeed = 0;
             }
+            System.out.println("Here012471204712047120712044104");
         }
+        System.out.println(" Target: " + hAngle[SASpos] + ", current: " + fix(angle) + ", direction of travel: " + leftORright(fix(angle), hAngle[SASpos]) + ", slowDirection: " + leftORright(fix(angle), intermediateAngle));
 
         paSpeed[0] = paSpeed[1];
         paSpeed[1] = aSpeed;
@@ -344,6 +324,8 @@ class Calculations {
     public double fix(double angle) {
         if (Math.signum(angle) == -1) {
             return (360 + angle);
+        } else if (angle > 360) {
+            return angle % 360;
         }
         return angle;
     }
@@ -383,6 +365,30 @@ class Calculations {
             return 1;
         }
         return 0;
+    }
+
+    public static double travelAngle(double xSpeed, double ySpeed) {
+        if (Math.signum(xSpeed) == 1 && Math.signum(ySpeed) == 1) {
+            return (((Math.toDegrees(Math.atan(xSpeed / ySpeed)))) + 0);
+        } else if (Math.signum(xSpeed) == 1 && Math.signum(ySpeed) == -1) {
+            return (((Math.toDegrees(Math.atan(xSpeed / ySpeed)))) + 180);
+        } else if (Math.signum(xSpeed) == -1 && Math.signum(ySpeed) == -1) {
+            return (((Math.toDegrees(Math.atan(xSpeed / ySpeed)))) + 180);
+        } else if (Math.signum(xSpeed) == -1 && Math.signum(ySpeed) == 1) {
+            return (360 - (Math.abs(Math.toDegrees(Math.atan(xSpeed / ySpeed)))));
+//##############################################################################
+        } else if (Math.signum(xSpeed) == 0 && Math.signum(ySpeed) == 1) {
+            return 0;
+        } else if (Math.signum(xSpeed) == 1 && Math.signum(ySpeed) == 0) {
+            return 90;
+        } else if (Math.signum(xSpeed) == 0 && Math.signum(ySpeed) == -1) {
+            return 180;
+        } else if (Math.signum(xSpeed) == -1 && Math.signum(ySpeed) == 0) {
+            return 270;
+        }
+
+        return 0;
+
     }
 
     /**

@@ -21,12 +21,15 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 import static ISU.Calculations.trigAngle;
 import java.awt.AlphaComposite;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.RenderingHints;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.ImageFilter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import javax.swing.JTextField;
 
 class Movement extends JPanel implements ActionListener, MouseWheelListener {
 
@@ -67,6 +70,7 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
     BufferedImage angles = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
 //    BufferedImage starBkg = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
     double zScale = 0.3;
+    private javax.swing.JTextField altitude;
 
     /**
      * Initializes the game and game components
@@ -97,9 +101,21 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
         setFocusable(true);
         addMouseWheelListener(this);
 
+        altitude = new javax.swing.JTextField(20);
+        
+        altitude.setEditable(false);
+        altitude.setFont(new java.awt.Font("Impact", 1, 18)); // NOI18N
+        altitude.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        add(altitude);
+
+        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        int setX = gd.getDisplayMode().getWidth() - 700;
+        int setY = gd.getDisplayMode().getHeight() - 100;
+
+
         for (int i = 0; i < stars.length; i++) {
-            stars[i][0] = rand.nextDouble() * 800;
-            stars[i][1] = rand.nextDouble() * 800;
+            stars[i][0] = rand.nextInt(gd.getDisplayMode().getWidth() - 700) * 1;
+            stars[i][1] = rand.nextInt(gd.getDisplayMode().getHeight() - 100) * 1;
             stars[i][2] = (rand.nextInt(4) + 2);
         }
 
@@ -163,7 +179,8 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
             at.scale(zScale, zScale);
             at.rotate(Math.toRadians(angle), rPic.getWidth() / 2, rPic.getHeight() / 2);
             g2d.drawImage(rPic, at, this);
-            dispControls(g);
+            dispControls(g, altitudeToPlanetCenter);
+            altitude.setText("Altitude: " + (int) altitudeToPlanetCenter);
         } else {
 //            System.out.println("Display Image");
 //            g2d.drawImage(rPic, 200, 200, 200, 200, this);
@@ -298,24 +315,27 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
 //        System.out.println("zScale: " + zScale);
     }
 
-    private void dispControls(Graphics g) {
+    private void dispControls(Graphics g, double altitudeToPlanetCenter) {
+//        JTextField altitude = new JTextField(15);
+        
+        altitude.setText("Altitude: " + (int) altitudeToPlanetCenter);
+        
+
         Graphics2D g2d = (Graphics2D) g;
         g.setColor(Color.blue);
         g.fillOval((getWidth()) / 2 - 100, getHeight() - 200, 200, 200);
         g.setColor(Color.white);
         g.fillOval((getWidth()) / 2 - 100 + 5, getHeight() - 200 + 5, 190, 190);
         g.drawImage(angles, getWidth() / 2 - 100 + 5, getHeight() - 200 + 5, 190, 190, this);
-        
+
         AffineTransform at = new AffineTransform();
         at.translate(((getWidth() / 2) - 128 + 1), (getHeight() - 256 + 57.5 / 2) * 1);  //Don't touch, draws the spinning arrow
-        at.rotate(Math.toRadians(angle), arrow.getWidth() / 2, arrow.getHeight() / 2); //No
+        at.rotate(Math.toRadians(angle), arrow.getWidth() / 2, arrow.getHeight() / 2); //Don't touch this, this spins the arrow 
         g2d.drawImage(arrow, at, this);
         AffineTransform at2 = new AffineTransform();
-        at2.translate(((getWidth() / 2) - 128 + 1), (getHeight() - 256 + 57.5 / 2) * 1);  //Don't touch, draws the spinning arrow
-        at2.rotate(Math.toRadians(c.travelAngle(rXSpeed, rYSpeed)), arrow.getWidth() / 2, arrow.getHeight() / 2); //No
+        at2.translate(((getWidth() / 2) - arrow2.getWidth() / 2), (getHeight() - arrow2.getHeight()) + 57.5 / 2);  //Don't touch, draws the other spinning arrow
+        at2.rotate(Math.toRadians(c.travelAngle(rXSpeed, rYSpeed)), arrow2.getWidth() / 2, arrow2.getHeight() / 2); //Don't touch this, this spins the other arrow 
         g2d.drawImage(arrow2, at2, this);
-        
-        ;
     }
 
     private class TAdapter extends KeyAdapter {
