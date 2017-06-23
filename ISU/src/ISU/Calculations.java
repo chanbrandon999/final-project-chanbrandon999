@@ -35,7 +35,7 @@ class Calculations {
 
     boolean resetAngle;
     double hAngle[] = new double[4];
-    double intermediateAngle;
+    double midAngle;
     boolean slowSpin = true;
     double[] paSpeed = new double[2];
     int aSpeedChange;
@@ -105,7 +105,7 @@ class Calculations {
         altitudeToPlanetCenter = (Math.sqrt(Math.pow(xPos / 1000, 2) + Math.pow(yPos / 1000, 2)));
 
         frame2.toOutputWindow(calcT(), calcG(), trigAngle('s', xPos, yPos), xForce, yForce, xAccel, yAccel, altitudeToPlanetCenter, aSpeed, xPos * accuracy, yPos * accuracy, angle, trigAngle('c', angle), rXSpeed, rYSpeed);
-        return new double[]{xPos, yPos, angle, altitudeToPlanetCenter, rXSpeed, rYSpeed};
+        return new double[]{xPos, yPos, angle, altitudeToPlanetCenter, rXSpeed, rYSpeed, sThrottle};
     }
 
     /**
@@ -247,7 +247,7 @@ class Calculations {
 //            System.out.println("RAN ONCE ######$%");
             resetAngle = false;
             slowSpin = false;
-            intermediateAngle = 0;
+            midAngle = 0;
         }
 
         if (choice == 1) { //Holds a stable heading 
@@ -272,32 +272,48 @@ class Calculations {
      * @param SASpos The selection of location to rotate towards
      */
     private void rotateTo(int SASpos) {
-        System.out.println("is opposite: " + (fix(angle) > fix(hAngle[SASpos] + 178) && fix(angle) < fix(hAngle[SASpos] - 178)) + ", " + fix(hAngle[SASpos] - 178));
-        if (Math.signum(paSpeed[0]) * Math.signum(paSpeed[1]) == -1 || (fix(angle) > fix(hAngle[SASpos] + 178) && fix(angle) < fix(hAngle[SASpos] - 178))) {
-            System.out.println("#####################################################################");
-            intermediateAngle = Math.abs((hAngle[SASpos] - fix(angle)) / 2 + fix(angle));
-            System.out.println("New intermediate: " + intermediateAngle);
+//        System.out.println("is opposite: " + ((angle) > fix(hAngle[SASpos] + 178) && (angle) < fix(hAngle[SASpos] - 178)) + ", " + fix(hAngle[SASpos] - 178));
+        if (((Math.signum(paSpeed[0]) * Math.signum(paSpeed[1]) == -1) && true)
+                || ((angle) > fix(hAngle[SASpos] + 178) && (angle) < fix(hAngle[SASpos] - 178))) {
+//            System.out.println("#####################################################################");
+
+            if ((angle) > hAngle[SASpos]) {
+                if ((angle) - hAngle[SASpos] > 180) {
+                    midAngle = fix((((angle) - 360) + hAngle[SASpos]) / 2);
+                } else  {
+                    midAngle = fix((((angle)) + hAngle[SASpos]) / 2);
+                }
+            } else {
+                if (hAngle[SASpos] - (angle) > 180) {
+                    midAngle = fix(((hAngle[SASpos] - 360) + (angle)) / 2);
+                } else  {
+                    midAngle = fix(((hAngle[SASpos]) + (angle)) / 2);
+                }
+            }
+            
+//            midAngle = ((hAngle[SASpos] + (angle)) % 360) / 2;
+//            System.out.println("New intermediate: " + midAngle);
             slowSpin = true;
         }
 
-        if (aSpeed > 2) {
+        if (aSpeed > 1.5) {
             aSpeed -= 0.01;
-        } else if (aSpeed < -2) {
+        } else if (aSpeed < -1.5) {
             aSpeed += 0.01;
         } else //
         //            
-        if (leftORright(fix(angle), intermediateAngle) == 1 && slowSpin == true && leftORright(fix(angle), hAngle[SASpos]) == -1) {
-            System.out.print("33");
+        if (leftORright((angle), midAngle) == 1 && slowSpin == true && leftORright((angle), hAngle[SASpos]) == -1) {
+//            System.out.print("33");
             aSpeed += 0.01;
-        } else if (leftORright(fix(angle), intermediateAngle) == -1 && slowSpin == true && leftORright(fix(angle), hAngle[SASpos]) == 1) {
-            System.out.print("44");
+        } else if (leftORright((angle), midAngle) == -1 && slowSpin == true && leftORright((angle), hAngle[SASpos]) == 1) {
+//            System.out.print("44");
             aSpeed -= 0.01;
 //            
-        } else if (leftORright(fix(angle), hAngle[SASpos]) == -1) {
-            System.out.print("11");
+        } else if (leftORright((angle), hAngle[SASpos]) == -1) {
+//            System.out.print("11");
             aSpeed -= 0.01;
-        } else if (leftORright(fix(angle), hAngle[SASpos]) == 1) {
-            System.out.print("22");
+        } else if (leftORright((angle), hAngle[SASpos]) == 1) {
+//            System.out.print("22");
             aSpeed += 0.01;
         } else {
             if (aSpeed > hAngle[SASpos]) {
@@ -307,9 +323,9 @@ class Calculations {
             } else {
                 aSpeed = 0;
             }
-            System.out.println("Here012471204712047120712044104");
+//            System.out.println("Here012471204712047120712044104");
         }
-        System.out.println(" Target: " + hAngle[SASpos] + ", current: " + fix(angle) + ", direction of travel: " + leftORright(fix(angle), hAngle[SASpos]) + ", slowDirection: " + leftORright(fix(angle), intermediateAngle));
+//        System.out.println(" Target: " + hAngle[SASpos] + ", current: " + (angle) + ", direction of travel: " + leftORright((angle), hAngle[SASpos]) + ", slowDirection: " + leftORright((angle), midAngle));
 
         paSpeed[0] = paSpeed[1];
         paSpeed[1] = aSpeed;
@@ -328,23 +344,6 @@ class Calculations {
             return angle % 360;
         }
         return angle;
-    }
-
-    /**
-     *
-     * @param plusORminus
-     * @return
-     */
-    public double aSpeedChange(int plusORminus) {
-        aSpeedChange++;
-        if (aSpeedChange % 3 == 0) {
-            return 0;
-        } else if (plusORminus == 1) {
-            return 0.01;
-        } else if (plusORminus == -1) {
-            return -0.01;
-        }
-        return 0;
     }
 
     /**
@@ -399,7 +398,7 @@ class Calculations {
 
         if (passThrough1[6] == 1) {
 //            System.out.println("Left");
-            if (aSpeed > -10) {
+            if (aSpeed > -7) {
                 aSpeed -= 0.01;
             }
 
@@ -408,7 +407,7 @@ class Calculations {
 
         if (passThrough1[7] == 1) {
 //            System.out.println("Right");
-            if (aSpeed < 10) {
+            if (aSpeed < 7) {
                 aSpeed += 0.01;
             }
 //            passThrough1[8] = 0;

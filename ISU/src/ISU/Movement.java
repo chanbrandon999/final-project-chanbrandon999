@@ -67,6 +67,7 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
     BufferedImage e5 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
     BufferedImage arrow = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
     BufferedImage arrow2 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage throttleAngle = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
     BufferedImage angles = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
 //    BufferedImage starBkg = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
     double zScale = 0.3;
@@ -91,6 +92,7 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
             e5 = ImageIO.read(new File("e5.png"));
             arrow = ImageIO.read(new File("Arrow.png"));
             arrow2 = ImageIO.read(new File("Arrow2.png"));
+            throttleAngle = ImageIO.read(new File("ThrottleArrow.png"));
             angles = ImageIO.read(new File("Angles.png"));
 
         } catch (IOException e) {
@@ -102,7 +104,7 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
         addMouseWheelListener(this);
 
         altitude = new javax.swing.JTextField(20);
-        
+
         altitude.setEditable(false);
         altitude.setFont(new java.awt.Font("Impact", 1, 18)); // NOI18N
         altitude.setHorizontalAlignment(javax.swing.JTextField.CENTER);
@@ -111,7 +113,6 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
         GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         int setX = gd.getDisplayMode().getWidth() - 700;
         int setY = gd.getDisplayMode().getHeight() - 100;
-
 
         for (int i = 0; i < stars.length; i++) {
             stars[i][0] = rand.nextInt(gd.getDisplayMode().getWidth() - 700) * 1;
@@ -155,6 +156,7 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
             altitudeToPlanetCenter = passThroughF[3];
             rXSpeed = passThroughF[4];
             rYSpeed = passThroughF[5];
+//            sThrottle = passThroughF[6];
         }
         repaint();
     }
@@ -317,16 +319,26 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
 
     private void dispControls(Graphics g, double altitudeToPlanetCenter) {
 //        JTextField altitude = new JTextField(15);
-        
+
         altitude.setText("Altitude: " + (int) altitudeToPlanetCenter);
-        
 
         Graphics2D g2d = (Graphics2D) g;
         g.setColor(Color.blue);
         g.fillOval((getWidth()) / 2 - 100, getHeight() - 200, 200, 200);
+
         g.setColor(Color.white);
         g.fillOval((getWidth()) / 2 - 100 + 5, getHeight() - 200 + 5, 190, 190);
-        g.drawImage(angles, getWidth() / 2 - 100 + 5, getHeight() - 200 + 5, 190, 190, this);
+
+        g.drawImage(angles, getWidth() / 2 - 126, getHeight() - 200 + 5, 222, 190, this);
+//        g.drawImage(throttleAngle, getWidth() / 2 - 126, getHeight() - 200 + 5, 222, 190, this);
+
+        AffineTransform at1 = new AffineTransform();
+
+        
+        at1.translate(getWidth() / 2 - 126, getHeight() - 220 + 5);  //Don't touch, draws the spinning arrow
+        at1.scale(0.317, 0.31766);
+        at1.rotate(Math.toRadians(c.sThrottle * 60), throttleAngle.getWidth() / 2, throttleAngle.getHeight() / 2 + 25); //Don't touch this, this spins the other arrow 
+        g2d.drawImage(throttleAngle, at1, this);
 
         AffineTransform at = new AffineTransform();
         at.translate(((getWidth() / 2) - 128 + 1), (getHeight() - 256 + 57.5 / 2) * 1);  //Don't touch, draws the spinning arrow
@@ -347,6 +359,7 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
             if (key == KeyEvent.VK_W) {
 //                System.out.println("Released Up");
                 passThroughI[4] = 0;
+
             }
 
             if (key == KeyEvent.VK_S) {
@@ -381,11 +394,13 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
             if (key == KeyEvent.VK_W) {
 //                System.out.println("Up");
                 passThroughI[4] = 1;
+
             }
 
             if (key == KeyEvent.VK_S) {
 //                System.out.println("Down");
                 passThroughI[5] = 1;
+
             }
             if (key == KeyEvent.VK_A) {
 //                System.out.println("Left");
