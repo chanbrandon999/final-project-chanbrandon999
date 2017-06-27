@@ -3,8 +3,6 @@ package ISU;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.TexturePaint;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -19,44 +17,57 @@ import java.util.Random;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.Timer;
-import static ISU.Calculations.trigAngle;
-import java.awt.AlphaComposite;
+//import static ISU.Calculations.trigAngle;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.awt.RenderingHints;
+import java.awt.GridLayout;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.geom.Ellipse2D;
-import java.awt.image.ImageFilter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import javax.swing.JTextField;
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 
-class Movement extends JPanel implements ActionListener, MouseWheelListener {
+class Movement extends JPanel implements ActionListener, MouseWheelListener, MouseListener, MouseMotionListener {
 
     int delay = 10; //10 Milliseconds (1/100 seconds)
     int tDelay = 1000 / delay;
     Timer timer;
     Timer timer2;
-
+    Timer mmTimer;
     int accuracy = 1000;
     long pRadius = 1 * 600000, pScale = pRadius * 10000 * 2;
-    double xPos = 0;                        //used to be int/long
-    double yPos = pRadius * accuracy;            //used to be int/long
-    double angle = 0;
+//    double c.xPos = 0;                        //used to be int/long
+//    double c.yPos = pRadius * accuracy;            //used to be int/long
+//    double c.angle = 0;
     long pXpos = 0, pYpos = 0;
-    double pAHL = 70000;        //This is the atmospheric height limit where there would be no more atmosphere 
+//    double c.pAHL = 70000;        //This is the atmospheric height limit where there would be no more atmosphere 
     double backColour;
 
     double[][] stars = new double[50][3];
-    double altitudeToPlanetCenter;
-    double rXSpeed, rYSpeed;
+//    double c.altitudeToPlanetCenter;
+//    double rXSpeed, rYSpeed;
     boolean isPaused = false;
     boolean blowUp = false;
     int blowUpCount = 0;
+    boolean showMiniMap;
+    boolean isMiniMapUp;
+    boolean timeWarpOn;
+    int timeWarpSpeed = 1;
 
+    double[] controlPassThrough = new double[10];
+    int[][] mouseDrag = new int[3][3];
+    int[] pPosMM;
+
+//    boolean startBlowUp = false;
     Calculations c = new Calculations();
-    double[] passThroughI = new double[10];
-    double[] passThroughF = new double[6];
+    PauseMenu pm = new PauseMenu();
+//    double[] passThroughI = new double[10];
+//    double[] passThroughF = new double[6];
 
     Random rand = new Random(); //Random number generator
     BufferedImage rPic = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
@@ -69,22 +80,28 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
     BufferedImage arrow2 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
     BufferedImage throttleAngle = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
     BufferedImage angles = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
-//    BufferedImage starBkg = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage miniShip = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage stable = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage prograde = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage retrograde = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage rIn = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage rOut = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage warp = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage aScale = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage aPointer = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+    BufferedImage fScale = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
     double zScale = 0.3;
     private javax.swing.JTextField altitude;
+    private javax.swing.JTextField speedometer;
 
     /**
      * Initializes the game and game components
-     *
-     * @param width The width of the window
-     * @param height the Height of the window
      */
-    public Movement(int width, int height) {
+    public Movement() {
 
         try {
 
             rPic = ImageIO.read(new File("Rocket.png"));
-//            starBkg = ImageIO.read(new File("Stars.jpeg"));
             e1 = ImageIO.read(new File("e1.png"));
             e2 = ImageIO.read(new File("e2.png"));
             e3 = ImageIO.read(new File("e3.png"));
@@ -94,25 +111,40 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
             arrow2 = ImageIO.read(new File("Arrow2.png"));
             throttleAngle = ImageIO.read(new File("ThrottleArrow.png"));
             angles = ImageIO.read(new File("Angles.png"));
+            miniShip = ImageIO.read(new File("MiniShip.png"));
+            stable = ImageIO.read(new File("stable.png"));
+            prograde = ImageIO.read(new File("prograde.png"));
+            retrograde = ImageIO.read(new File("retrograde.png"));
+            rIn = ImageIO.read(new File("rIn.png"));
+            rOut = ImageIO.read(new File("rOut.png"));
+            warp = ImageIO.read(new File("warp.png"));
+            aScale = ImageIO.read(new File("aScale.png"));
+            aPointer = ImageIO.read(new File("aPointer.png"));
+            fScale = ImageIO.read(new File("fScale.png"));
 
         } catch (IOException e) {
             System.out.println(e);
         }
+
+        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        int setX = gd.getDisplayMode().getWidth() - 700;
+        int setY = gd.getDisplayMode().getHeight() - 100;
 
         addKeyListener(new TAdapter());
         setFocusable(true);
         addMouseWheelListener(this);
 
         altitude = new javax.swing.JTextField(20);
-
         altitude.setEditable(false);
         altitude.setFont(new java.awt.Font("Impact", 1, 18)); // NOI18N
         altitude.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-        add(altitude);
 
-        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        int setX = gd.getDisplayMode().getWidth() - 700;
-        int setY = gd.getDisplayMode().getHeight() - 100;
+        speedometer = new javax.swing.JTextField(10);
+        speedometer.setEditable(false);
+        speedometer.setFont(new java.awt.Font("Impact", 1, 11));
+        speedometer.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+
+        speedometer.setText("Speed: 0");
 
         for (int i = 0; i < stars.length; i++) {
             stars[i][0] = rand.nextInt(gd.getDisplayMode().getWidth() - 700) * 1;
@@ -120,43 +152,70 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
             stars[i][2] = (rand.nextInt(4) + 2);
         }
 
-//        setBackground(Color.BLACK);
-        timer = new Timer(delay, this);
-        //the "this" is the actionPerformed method
+        pm.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        pm.addKeyListener(new TAdapter());
+        pm.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                isPaused = false;
+                timer.start();
+            }
+        });
+        timer = new Timer(10, this);
         timer.start();
 
-//        if (blowUp == true) {
-//            System.out.println("Switching timers");
-//            timer2 = new Timer(delay, this);
-//            timer2.start();
-//            blowUp = true;
-//
-//        }
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (blowUp == false) {
-            passThroughF = c.positionUpdate(passThroughI);
+
+        pm.setLocation(getWidth() / 2, getHeight() / 2);
+
+        altitude.setLocation(getWidth() / 2 - 142, 4);
+        speedometer.setLocation(getWidth() / 2 - 46, getHeight() - 200 - 15);
+
+        if (showMiniMap == true && isMiniMapUp == false) { //Before the minimap opens, run these commands
+            timer.stop();   //Stop running timer
+            pPosMM = new int[]{getWidth() / 2, getHeight() / 2};    //Initialize planet position
+            mmTimer = new Timer(100, this);
+            mmTimer.start();    //Switch to less-intensive timer
+            isMiniMapUp = true; //Sets this variable to check later 
+            remove(altitude);   //Removes temporarily
+            remove(speedometer);
+        } else if (showMiniMap == false && isMiniMapUp == true) { //When closing minimap, start the timer again
+            mmTimer.stop();
+            isMiniMapUp = false;
+            timer.start();
+//            System.out.println("Adding Spedometer");
+            add(altitude);
+            add(speedometer);
+
         }
-        if (passThroughF[1] == -1.192837465 && passThroughF[0] == -1.9182736465) {
+
+        if (blowUp == false && showMiniMap == false) {
+
+            for (int i = 0; i < timeWarpSpeed; i++) {
+
+                c.positionUpdate(controlPassThrough);
+                if (c.altitudeToPlanetCenter < c.pAHL) {
+                    timeWarpSpeed = 1;
+                    timeWarpOn = false;
+                    break;
+                }
+            }
+            add(altitude);
+            add(speedometer);
+        }
+
+        if (c.startBlowUp == true) {
+            remove(altitude);   //Removes temporarily
+            remove(speedometer);
             timer.stop();
 
-            if (blowUp == false) {  //Only use if it hasn't blown up yet
-//                System.out.println("Switching timers");
+            if (blowUp == false) {  //Only if it hasn't blown up yet
                 timer2 = new Timer(300, this);
                 timer2.start();
                 blowUp = true;
             }
-
-        } else {
-            xPos = passThroughF[0];
-            yPos = passThroughF[1];
-            angle = passThroughF[2];
-            altitudeToPlanetCenter = passThroughF[3];
-            rXSpeed = passThroughF[4];
-            rYSpeed = passThroughF[5];
-//            sThrottle = passThroughF[6];
         }
         repaint();
     }
@@ -173,26 +232,28 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
 
         pScale = (long) (pRadius * 2 * 10000 * zScale);
 
-        dispScenery(g);
-
-        if (blowUp == false) {
+        if (blowUp == false && showMiniMap == false) {
+            dispScenery(g);
             AffineTransform at = new AffineTransform();
             at.translate(getWidth() / 2 - rPic.getWidth() * zScale / 2, getHeight() / 2 - rPic.getHeight() * zScale / 2);  //Don't touch. Puts the rocket at the center
             at.scale(zScale, zScale);
-            at.rotate(Math.toRadians(angle), rPic.getWidth() / 2, rPic.getHeight() / 2);
+            at.rotate(Math.toRadians(c.angle), rPic.getWidth() / 2, rPic.getHeight() / 2);
             g2d.drawImage(rPic, at, this);
-            dispControls(g, altitudeToPlanetCenter);
-            altitude.setText("Altitude: " + (int) altitudeToPlanetCenter);
-        } else {
-//            System.out.println("Display Image");
-//            g2d.drawImage(rPic, 200, 200, 200, 200, this);
+            dispControls(g);
+            altitude.setText("Altitude: " + (int) (c.altitudeToPlanetCenter - pRadius) + " m");
+            speedometer.setText((int) ((Math.sqrt(Math.pow(c.rYSpeed, 2) + Math.pow(c.rXSpeed, 2)))) + " m/s");
+        } else if (blowUp == true) {
+            dispScenery(g);
             if (blowUpCount < 15) {
                 dispExplosion(g);
                 blowUpCount++;
             } else {
                 timer2.stop();
             }
-
+        } else if (showMiniMap == true) {
+            addMouseMotionListener(this);
+            addMouseListener(this);
+            dispMiniMap(g);
         }
 
     }
@@ -257,10 +318,10 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
         Graphics2D g2d = (Graphics2D) g;
 
         //########Background atmosphere/space
-        if (altitudeToPlanetCenter > (pRadius + pAHL)) {
+        if (c.altitudeToPlanetCenter > (c.pAHL)) {
             backColour = 0;
         } else {
-            backColour = .7 - ((altitudeToPlanetCenter - pRadius) / pAHL) * 0.7;
+            backColour = .7 - ((c.altitudeToPlanetCenter - pRadius) / (c.pAHL - pRadius)) * 0.7;
         }
         g2d.setPaint(Color.getHSBColor((float) .55, (float) .71, (float) backColour));  //Last number for darkness 
         g2d.fillRect(0, 0, getWidth(), getHeight());
@@ -269,8 +330,8 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
         g.setColor(Color.white);
         for (int i = 0; i < stars.length; i++) {
             if (blowUp == false) {
-                stars[i][0] += rYSpeed / 1000;
-                stars[i][1] -= rXSpeed / 1000;
+                stars[i][0] += c.rYSpeed / 1000;
+                stars[i][1] -= c.rXSpeed / 1000;
 
                 if (stars[i][0] > getHeight()) {
                     stars[i][0] -= getHeight();
@@ -290,13 +351,101 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
 
         //###################Planet###################
         pXpos = (getWidth() - pScale) / 2;
-        pYpos = (long) (getHeight() / 2 + ((rPic.getHeight() / 2) + 1 * (altitudeToPlanetCenter - pRadius) * accuracy) * zScale);           //#########################FIX ME
+        pYpos = (long) (getHeight() / 2 + ((rPic.getHeight() / 2) + 1 * (c.altitudeToPlanetCenter - pRadius) * accuracy) * zScale);           //#########################FIX ME
 
         g.setColor(Color.green);
         Ellipse2D.Double shape = new Ellipse2D.Double(pXpos, pYpos, pScale, pScale);
         g2d.draw(shape);
         g2d.fill(shape);
 
+    }
+
+    private void dispControls(Graphics g) {
+//        JTextField altitude = new JTextField(15);
+
+        altitude.setText("Altitude: " + (int) c.altitudeToPlanetCenter);
+
+        Graphics2D g2d = (Graphics2D) g;
+
+        //Draws the blue border (really a full circle but that doesn't matter)
+        g.setColor(Color.blue);
+        g.fillOval((getWidth()) / 2 - 100, getHeight() - 200, 200, 200);
+
+        //Draws the smaller White circle
+        g.setColor(Color.white);
+        g.fillOval((getWidth()) / 2 - 100 + 5, getHeight() - 200 + 5, 190, 190);
+
+        //Draws the c.angles
+        g.drawImage(angles, getWidth() / 2 - 126, getHeight() - 195, 222, 190, this);
+
+        //Draws throttle meter
+        AffineTransform at1 = new AffineTransform();
+        at1.translate(getWidth() / 2 - 125, getHeight() - 195);  //Don't touch, draws the spinning arrow
+        at1.scale(0.317, 0.31766);
+        at1.rotate(Math.toRadians(c.sThrottle * 60), 400, 300); //Don't touch this, this spins the other arrow 
+        g2d.drawImage(throttleAngle, at1, this);
+
+        //Draws the SAS heading logos
+        switch (c.selectHeading) {
+            case 1:
+                g.drawImage(stable, getWidth() / 2 - 10, getHeight() - 195 / 2 - 50, 20, 20, this);
+                break;
+            case 2:
+                g.drawImage(prograde, getWidth() / 2 - 10, getHeight() - 195 / 2 - 50, 20, 20, this);
+                break;
+            case 3:
+                g.drawImage(rIn, getWidth() / 2 - 10, getHeight() - 195 / 2 - 50, 20, 20, this);
+                break;
+            case 4:
+                g.drawImage(retrograde, getWidth() / 2 - 10, getHeight() - 195 / 2 - 50, 20, 20, this);
+                break;
+            case 5:
+                g.drawImage(rOut, getWidth() / 2 - 10, getHeight() - 195 / 2 - 50, 20, 20, this);
+                break;
+        }
+
+        //Displays time warping triangles
+        if (timeWarpSpeed >= 1) {
+            for (int i = 1; Math.pow(2, i) <= Math.pow(timeWarpSpeed, 2); i++) {
+                g.drawImage(warp, (int) (15 + i * 20), 15, 15, 15, this);
+            }
+        }
+
+        //Draws heading arrow
+        AffineTransform at = new AffineTransform();
+        at.translate(((getWidth() / 2) - 128 + 1), (getHeight() - 256 + 57.5 / 2) * 1);  //Don't touch, draws the spinning arrow
+        at.rotate(Math.toRadians(c.angle), arrow.getWidth() / 2, arrow.getHeight() / 2); //Don't touch this, this spins the arrow 
+        g2d.drawImage(arrow, at, this);
+        //Draws travel arrow
+        AffineTransform at2 = new AffineTransform();
+        at2.translate(((getWidth() / 2) - arrow2.getWidth() / 2), (getHeight() - arrow2.getHeight()) + 57.5 / 2);  //Don't touch, draws the other spinning arrow
+        at2.rotate(Math.toRadians(c.travelAngle(c.rXSpeed, c.rYSpeed)), arrow2.getWidth() / 2, arrow2.getHeight() / 2); //Don't touch this, this spins the other arrow 
+        g2d.drawImage(arrow2, at2, this);
+
+        //Displays altitude Scale
+        g.drawImage(aScale, (getWidth() - 284) / 2, 0, this);
+        if (((c.altitudeToPlanetCenter - pRadius) / (c.pAHL - pRadius)) > 1) {
+            g.drawImage(aPointer, (int) ((getWidth() + 284 - 30) / 2 - 284), 61, this);
+        } else {
+            g.drawImage(aPointer, (int) ((getWidth() + 284 - 30) / 2 - 284 + 284 * ((((100.13 * Math.pow(Math.E, -(c.altitudeToPlanetCenter - c.pRadius) / 5600)) / (100.13))))), 61, this);
+        }
+
+        //Displays fuel gague
+        g.drawImage(fScale, (getWidth() - 284), 0, this);
+        if (c.rFuel < 0) {
+            g.drawImage(aPointer, (int) ((getWidth() - 284 - 15)), 61, this);
+        } else {
+            g.drawImage(aPointer, (int) ((getWidth()) - 284 * ((c.initFuel - c.rFuel) / c.initFuel) - 15), 61, this);
+        }
+
+    }
+
+    private void dispMiniMap(Graphics g) {
+        g.setColor(Color.black);
+        g.fillRect(0, 0, getWidth(), getHeight());
+        g.setColor(Color.green);
+        g.fillOval((int) (- 600 / 2 * zScale * 5 + (pPosMM[0])), (int) (- 600 / 2 * zScale * 5 + pPosMM[1]), (int) (600 * (zScale * 5)), (int) (600 * (zScale * 5)));
+        g.drawImage(miniShip, (int) (- 600 / 2 * zScale * 5 + (pPosMM[0]) + 600 * (zScale * 5) / 2 - 15 + c.xPos / 2000000 * (zScale * 5)), (int) (- 600 / 2 * (zScale * 5) + pPosMM[1] + 600 * (zScale * 5) / 2 - 15 - c.yPos / 2000000 * (zScale * 5)), 30, 30, this);
     }
 
     @Override
@@ -314,40 +463,34 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
         } else if (zScale > 1.00001) {
             zScale = 1;
         }
-//        System.out.println("zScale: " + zScale);
     }
 
-    private void dispControls(Graphics g, double altitudeToPlanetCenter) {
-//        JTextField altitude = new JTextField(15);
+    @Override
+    public void mousePressed(MouseEvent e) {
+        mouseDrag[0][0] = e.getX();
+        mouseDrag[0][1] = e.getY();
+        mouseDrag[1][0] = e.getX();
+        mouseDrag[1][1] = e.getY();
+    }
 
-        altitude.setText("Altitude: " + (int) altitudeToPlanetCenter);
+    @Override
+    public void mouseReleased(MouseEvent e) {
+    }
 
-        Graphics2D g2d = (Graphics2D) g;
-        g.setColor(Color.blue);
-        g.fillOval((getWidth()) / 2 - 100, getHeight() - 200, 200, 200);
+    @Override
+    public void mouseMoved(MouseEvent e) {
+    }
 
-        g.setColor(Color.white);
-        g.fillOval((getWidth()) / 2 - 100 + 5, getHeight() - 200 + 5, 190, 190);
-
-        g.drawImage(angles, getWidth() / 2 - 126, getHeight() - 200 + 5, 222, 190, this);
-//        g.drawImage(throttleAngle, getWidth() / 2 - 126, getHeight() - 200 + 5, 222, 190, this);
-
-        AffineTransform at1 = new AffineTransform();
-
-        
-        at1.translate(getWidth() / 2 - 126, getHeight() - 220 + 5);  //Don't touch, draws the spinning arrow
-        at1.scale(0.317, 0.31766);
-        at1.rotate(Math.toRadians(c.sThrottle * 60), throttleAngle.getWidth() / 2, throttleAngle.getHeight() / 2 + 25); //Don't touch this, this spins the other arrow 
-        g2d.drawImage(throttleAngle, at1, this);
-
-        AffineTransform at = new AffineTransform();
-        at.translate(((getWidth() / 2) - 128 + 1), (getHeight() - 256 + 57.5 / 2) * 1);  //Don't touch, draws the spinning arrow
-        at.rotate(Math.toRadians(angle), arrow.getWidth() / 2, arrow.getHeight() / 2); //Don't touch this, this spins the arrow 
-        g2d.drawImage(arrow, at, this);
-        AffineTransform at2 = new AffineTransform();
-        at2.translate(((getWidth() / 2) - arrow2.getWidth() / 2), (getHeight() - arrow2.getHeight()) + 57.5 / 2);  //Don't touch, draws the other spinning arrow
-        at2.rotate(Math.toRadians(c.travelAngle(rXSpeed, rYSpeed)), arrow2.getWidth() / 2, arrow2.getHeight() / 2); //Don't touch this, this spins the other arrow 
-        g2d.drawImage(arrow2, at2, this);
+    @Override
+    public void mouseDragged(MouseEvent e) {
+        mouseDrag[0][0] = mouseDrag[1][0];
+        mouseDrag[0][1] = mouseDrag[1][1];
+        mouseDrag[1][0] = e.getX();
+        mouseDrag[1][1] = e.getY();
+        mouseDrag[2][0] = mouseDrag[1][0] - mouseDrag[0][0];
+        mouseDrag[2][1] = mouseDrag[1][1] - mouseDrag[0][1];
+        pPosMM[0] += mouseDrag[2][0];
+        pPosMM[1] += mouseDrag[2][1];
     }
 
     private class TAdapter extends KeyAdapter {
@@ -358,30 +501,34 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
 
             if (key == KeyEvent.VK_W) {
 //                System.out.println("Released Up");
-                passThroughI[4] = 0;
+                controlPassThrough[0] = 0;
 
             }
 
             if (key == KeyEvent.VK_S) {
 //                System.out.println("Released Down");
-                passThroughI[5] = 0;
+                controlPassThrough[1] = 0;
             }
             if (key == KeyEvent.VK_A) {
 //                System.out.println("Released Left");
-                passThroughI[6] = 0;
+                controlPassThrough[2] = 0;
             }
 
             if (key == KeyEvent.VK_D) {
 //                System.out.println("Released Right");
-                passThroughI[7] = 0;
+                controlPassThrough[3] = 0;
             }
 
             if (key == KeyEvent.VK_Z) {
-                passThroughI[4] = 0;
+                controlPassThrough[0] = 0;
             }
 
             if (key == KeyEvent.VK_X) {
-                passThroughI[5] = 0;
+                controlPassThrough[1] = 0;
+            }
+            if (key == KeyEvent.VK_HOME) {
+//                System.out.println("Right");
+                controlPassThrough[7] = 0;
             }
         }
 
@@ -389,42 +536,89 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
         public void keyPressed(KeyEvent e) {
 //            System.out.println("Key pressed code=" + e.getKeyCode() + ", char=" + e.getKeyChar());
             int key = e.getKeyCode();
-//            c.controls(key);
+            if (timeWarpOn == false) {
 
-            if (key == KeyEvent.VK_W) {
+                if (key == KeyEvent.VK_W) {
 //                System.out.println("Up");
-                passThroughI[4] = 1;
+                    controlPassThrough[0] = 1;
 
-            }
+                }
 
-            if (key == KeyEvent.VK_S) {
+                if (key == KeyEvent.VK_S) {
 //                System.out.println("Down");
-                passThroughI[5] = 1;
+                    controlPassThrough[1] = 1;
 
-            }
-            if (key == KeyEvent.VK_A) {
+                }
+                if (key == KeyEvent.VK_A) {
 //                System.out.println("Left");
-                passThroughI[6] = 1;
-            }
+                    controlPassThrough[2] = 1;
+                }
 
-            if (key == KeyEvent.VK_D) {
+                if (key == KeyEvent.VK_D) {
 //                System.out.println("Right");
-                passThroughI[7] = 1;
-            }
+                    controlPassThrough[3] = 1;
+                }
 
-            if (key == KeyEvent.VK_HOME) {
+                if (key == KeyEvent.VK_HOME) {
 //                System.out.println("Right");
-                passThroughI[7] = 10;
-            }
+                    controlPassThrough[7] = 10;
+                }
+                if (key == KeyEvent.VK_END) {
+//                System.out.println("Right");
+                    controlPassThrough[8] = 10;
+                }
 
-            if (key == KeyEvent.VK_Z) {
+                if (key == KeyEvent.VK_Z) {
 //                System.out.println("minThrottle");
-                passThroughI[4] = -1;
-            }
+                    controlPassThrough[0] = -1;
+                }
 
-            if (key == KeyEvent.VK_X) {
+                if (key == KeyEvent.VK_X) {
 //                System.out.println("maxThrottle");
-                passThroughI[5] = 10;
+                    controlPassThrough[1] = 10;
+                }
+
+                if (key == KeyEvent.VK_1) { //Stable Heading
+                    if (c.selectHeading != 1) {
+                        c.selectHeading = 1;
+                    } else {
+                        c.selectHeading = 0;
+                    }
+                }
+                if (key == KeyEvent.VK_2) {//Prograde
+                    if (c.selectHeading != 2) {
+                        c.selectHeading = 2;
+                    } else {
+                        c.selectHeading = 0;
+                    }
+                }
+                if (key == KeyEvent.VK_3) {//Right
+                    if (c.selectHeading != 3) {
+                        c.selectHeading = 3;
+                    } else {
+                        c.selectHeading = 0;
+                    }
+                }
+                if (key == KeyEvent.VK_4) {//Retrograde
+                    if (c.selectHeading != 4) {
+                        c.selectHeading = 4;
+                    } else {
+                        c.selectHeading = 0;
+                    }
+                }
+                if (key == KeyEvent.VK_5) {//Left
+                    if (c.selectHeading != 5) {
+                        c.selectHeading = 5;
+                    } else {
+                        c.selectHeading = 0;
+                    }
+                }
+
+                if (key == KeyEvent.VK_F3) {
+//                System.out.println("Explode on demand!");
+                    c.startBlowUp = true;
+                }
+
             }
 
             if (key == KeyEvent.VK_ESCAPE) {
@@ -432,64 +626,70 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener {
                 if (isPaused == false) {
                     timer.stop();
                     isPaused = true;
+
+                    pm.setVisible(true);
+
                 } else {
-                    timer.start();
                     isPaused = false;
+                    timer.start();
+
                 }
 
             }
-            if (key == KeyEvent.VK_1) { //Stable Heading
-                if (passThroughI[8] != 1) {
-                    passThroughI[8] = 1;
+
+            if (key == KeyEvent.VK_M) { //Intended for minimap menu
+
+                if (showMiniMap == false) {
+                    showMiniMap = true;
                 } else {
-                    passThroughI[8] = 0;
+                    showMiniMap = false;
                 }
-            }
-            if (key == KeyEvent.VK_2) {//Prograde
-                if (passThroughI[8] != 2) {
-                    passThroughI[8] = 2;
-                } else {
-                    passThroughI[8] = 0;
-                }
-            }
-            if (key == KeyEvent.VK_3) {//Right
-                if (passThroughI[8] != 3) {
-                    passThroughI[8] = 3;
-                } else {
-                    passThroughI[8] = 0;
-                }
-            }
-            if (key == KeyEvent.VK_4) {//Retrograde
-                if (passThroughI[8] != 4) {
-                    passThroughI[8] = 4;
-                } else {
-                    passThroughI[8] = 0;
-                }
-            }
-            if (key == KeyEvent.VK_5) {//Left
-                if (passThroughI[8] != 5) {
-                    passThroughI[8] = 5;
-                } else {
-                    passThroughI[8] = 0;
-                }
+//                System.out.println("showMiniMap: " + showMiniMap);
             }
 
-            if (key == KeyEvent.VK_F3) {
-//                System.out.println("Explode on demand!");
-                passThroughI[9] = 0.8103;
+            if (key == KeyEvent.VK_PERIOD) {
+                if (c.altitudeToPlanetCenter >= c.pAHL) {
+                    timeWarpOn = true;
+                    controlPassThrough[0] = 0;
+                    controlPassThrough[1] = 0;
+                    c.sThrottle = 0;
+                    if (timeWarpSpeed < 256) {
+                        timeWarpSpeed *= 2;
+                        controlPassThrough[0] = 0;
+                        c.selectHeading = 1;
+                    } else {
+                        timeWarpSpeed = 256;
+                    }
+                }
+
             }
-
-            if (key == KeyEvent.VK_M) {//Left
-
-//                if (passThroughI[8] != 5) {
-//                    passThroughI[8] = 5;
-//                } else {
-//                    passThroughI[8] = 0;
-//                }
+            if (key == KeyEvent.VK_COMMA) {
+                if (timeWarpSpeed > 1) {
+                    timeWarpSpeed /= 2;
+                } else {
+//                    System.out.println("Time warp off!");
+                    timeWarpSpeed = 1;
+                    timeWarpOn = false;
+                }
             }
 
         }
 
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

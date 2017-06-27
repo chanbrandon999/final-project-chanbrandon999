@@ -10,42 +10,47 @@ import javax.swing.JFrame;
 
 class Calculations {
 
+//    Movement m = new Movement();
     int accuracy = 1000;
     long pRadius = 1 * 600000, pScale = pRadius * 10000 * 2;
-    double xPos = 0;                        //used to be int/long
-    double yPos = pRadius * accuracy;            //used to be int/long
-    double aThrottle = 0, aSpeed = 0, angle = 0;
-    double rXSpeed = 0, rYSpeed = 0, sThrottle = 0;
-    double dx = 0, dy = 0;
-    long drag = 10;
+    public double xPos = 0;                        //used to be int/long
+    public double yPos = pRadius * accuracy;            //used to be int/long
+    public double aThrottle = 0, aSpeed = 0, angle = 0;
+    public double rXSpeed = 0, rYSpeed = 0, sThrottle = 0;
+    long rThrust = 1500 * 1000 * 1;
     long pXpos = 0, pYpos = 0;
     double pGravity = 9.81;
-    double pAHL = 70000;        //This is the atmospheric height limit where there would be no more atmosphere 
+    double pAHL = 670000;        //This is the atmospheric height limit where there would be no more atmosphere 
     double[][] stars = new double[50][3];
-    double altitudeToPlanetCenter;
-    double rMass = 30000;
-    long rThrust = 1500 * 1000 * 1;
-    double xForce = 0, yForce = 0;
-    double xAccel = 0, yAccel = 0;
-//    boolean[] isPressed = new boolean[4];
-    double[] passThrough1 = new double[10];
+    public double altitudeToPlanetCenter;
+    double rFuel = 16000, initFuel = rFuel;
+    double rMass = 12.75 * 1000 + rFuel;
 
-    int tDelayI = 10;
-    int tDelay = 1000 / tDelayI;
+    double xForce, yForce;
+    double xAccel, yAccel;
+//    boolean[] isPressed = new boolean[4];
+    double[] controls = new double[10];
+    int selectHeading;
+    int delay = 10;
+    int tDelay = 1000 / delay;
+
+    boolean startBlowUp;
+    boolean timeWarpOn;
 
     boolean resetAngle;
     double hAngle[] = new double[4];
     double midAngle;
     boolean slowSpin = true;
-    double[] paSpeed = new double[2];
-    int aSpeedChange;
+    double[] previousASpeed = new double[2];
 
     Random rand = new Random(); //Random number generator
     double zScale = 0.3;
     OutputWindow frame2 = new OutputWindow();
+    boolean dispTelemetry = false;
+//    Movement m = new Movement();
 
     /**
-     *
+     * Initializes set variables
      */
     public Calculations() {
 
@@ -55,11 +60,13 @@ class Calculations {
             stars[i][2] = (rand.nextInt(4) + 2);
         }
 
-        frame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame2.setVisible(true);
-        frame2.setResizable(true);
-        frame2.setSize(600, 300);
-        frame2.setLocation(1250, 50);
+        if (dispTelemetry == true) {
+            frame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame2.setVisible(true);
+            frame2.setResizable(true);
+            frame2.setSize(600, 300);
+            frame2.setLocation(1250, 50);
+        }
 
         if (false) {
             xPos = 0;
@@ -83,61 +90,62 @@ class Calculations {
      * @param passThrough An array of values with the positioning and User Input
      * @return A second array with the resulting forces acting on the rocket.
      */
-    public double[] positionUpdate(double[] passThrough) {
+    public void positionUpdate(double[] passThrough) {
 
-        passThrough1 = passThrough;
-
-        controls();
-
-        drag = 0;  //temporary measure 
-
-//        calcD();
-        xForce = (calcT() * trigAngle('s', angle)) - (calcG() * trigAngle('s', xPos, yPos));
-        yForce = (calcT() * trigAngle('c', angle)) - (calcG() * trigAngle('c', xPos, yPos));
+        if (timeWarpOn == true) { //Skips 
+            xForce = (-calcG() * trigAngle('s', xPos, yPos));
+            yForce = (-calcG() * trigAngle('c', xPos, yPos));
+        } else {
+            controls = passThrough;
+            controls();
+            xForce = (calcT() * trigAngle('s', fix(angle + 0 * travelAngle(xPos, yPos)))) - (calcG() * trigAngle('s', xPos, yPos) + calcD() * trigAngle('s', rXSpeed, rYSpeed));
+            yForce = (calcT() * trigAngle('c', fix(angle + 0 * travelAngle(xPos, yPos)))) - (calcG() * trigAngle('c', xPos, yPos) + calcD() * trigAngle('c', rXSpeed, rYSpeed));
+            //Adds components of the X forces and Y forces together. Includes Thrust, Gravity and Drag. 
+        }
 
         xAccel = (xForce / rMass);
         yAccel = (yForce / rMass);
-
-        if (moveRocket() == true || passThrough1[9] == 0.8103) {
-            return new double[]{-1.9182736465, -1.192837465};
-        }
+        //Adds the forces together to find the acceleration components according to Newton's law: F = mass * acceleration
+        
+        moveRocket();
 
         altitudeToPlanetCenter = (Math.sqrt(Math.pow(xPos / 1000, 2) + Math.pow(yPos / 1000, 2)));
 
-        frame2.toOutputWindow(calcT(), calcG(), trigAngle('s', xPos, yPos), xForce, yForce, xAccel, yAccel, altitudeToPlanetCenter, aSpeed, xPos * accuracy, yPos * accuracy, angle, trigAngle('c', angle), rXSpeed, rYSpeed);
-        return new double[]{xPos, yPos, angle, altitudeToPlanetCenter, rXSpeed, rYSpeed, sThrottle};
+        if (dispTelemetry == true) {
+            frame2.toOutputWindow(calcT(), calcG(), trigAngle('s', xPos, yPos), xForce, yForce, xAccel, yAccel, altitudeToPlanetCenter, aSpeed, xPos * accuracy, yPos * accuracy, angle, trigAngle('c', angle), rXSpeed, rYSpeed, calcD() * trigAngle('c', rXSpeed, rYSpeed), calcD() * trigAngle('s', rXSpeed, rYSpeed));
+        }
+
     }
 
     /**
-     * Sets the positioning of the rocket
-     *
-     * @return
+     * Moves the rocket given the acceleration of the rocket in X and Y
+     * directions
      */
-    private boolean moveRocket() {
+    private void moveRocket() {
 
         rXSpeed += xAccel / tDelay;     //The speed increments each 10 milliseconds 
         rYSpeed += yAccel / tDelay;
 
-        xPos += rXSpeed * tDelayI;                //The position updates each 10 miliseconds by the speed each milisecond 
-        yPos += rYSpeed * tDelayI;
+        xPos += rXSpeed * delay;                //The position updates each 10 miliseconds by the speed each milisecond 
+        yPos += rYSpeed * delay;
 
         if ((Math.sqrt(Math.pow(xPos / accuracy, 2) + Math.pow(yPos / accuracy, 2))) < pRadius) {   //Checks if the rocket hits the ground 
 
-            if ((Math.sqrt(Math.pow(rXSpeed * tDelayI, 2) + Math.pow(rYSpeed * tDelayI, 2))) > 6) {   //Checks if it hits it hard enough to blow up 
+//            System.out.println("crashSpeed: " + (Math.sqrt(Math.pow(rXSpeed * delay, 2) + Math.pow(rYSpeed * delay, 2))));
+            if ((Math.sqrt(Math.pow(rXSpeed * delay, 2) + Math.pow(rYSpeed * delay, 2))) > 6) {   //Checks if it hits it hard enough to blow up 
 //                System.out.println("Blow up!");
-                return true;
+                startBlowUp = true;
             }
 
             xPos = pRadius * trigAngle('s', xPos, yPos) * accuracy;
             yPos = pRadius * trigAngle('c', xPos, yPos) * accuracy;
         }
 
-        angle += aSpeed;
-        angle = fix(angle);
-
-//        System.out.println("Fandangled Angle: \t\t\t\t\t" + travelAngle(rXSpeed, rYSpeed));
-        rotationControl((int) passThrough1[8]);
-        return false;
+        if (timeWarpOn == false) {
+            rotationControl(selectHeading);
+            angle += aSpeed;
+            angle = fix(angle);
+        }
 
     }
 
@@ -160,17 +168,25 @@ class Calculations {
         }
 
         if (sinORcos == 's') {
-            return Math.sin((Math.atan(xPos / yPos)));
+            if (Math.signum(xPos) == -1) {
+                return -Math.abs(Math.sin((Math.atan(xPos / yPos))));
+            } else {
+                return Math.abs(Math.sin((Math.atan(xPos / yPos))));
+            }
 
         } else if (sinORcos == 'c') {
-            return Math.cos((Math.atan(xPos / yPos)));
+            if (Math.signum(yPos) == -1) {
+                return -Math.abs(Math.cos((Math.atan(xPos / yPos))));
+            } else {
+                return Math.abs(Math.cos((Math.atan(xPos / yPos))));
+            }
         }
 
         return 0;
     }
 
     /**
-     * Finds the Sine or Cosine value of a specified angle
+     * Finds the Sine or Cosine value of two specified "sides."
      *
      * @param sinORcos Specifies which math equation to use. 's' for Sine, 'c'
      * for Cosine
@@ -194,31 +210,24 @@ class Calculations {
      */
     private double calcG() {
 
-        if (altitudeToPlanetCenter <= pRadius) {
+        if (altitudeToPlanetCenter <= pRadius) { //Checks if the rocket is underneath the planet
             return 0;
         } else {
             return rMass * (pGravity / Math.pow(altitudeToPlanetCenter / pRadius, 2));
+            //Returns force of gravity according to diminishing gravity laws
+            //See link for equations: https://www.mansfieldct.org/Schools/MMS/staff/hand/lawsgravaltitude.htm
         }
 
     }
 
     private double calcD() { //###################################################################################################################
-//        if (rSpeed > 0) {
-//            rSpeed += -(drag);
-//        } else if (rSpeed < 0) {
-//            rSpeed += (drag);
-//        }
-
-//        aSpeed = aThrottle / 1;
-//        System.out.println(aSpeed);
-//        if (aSpeed > 0) {
-//            aSpeed += (drag / 5);                           //Fix angular drag model 
-//        } else if (aSpeed < 0) {
-//            aSpeed -= (drag / 5);
-//        }
-//System.out.println("sdfdsf");
-//        System.out.println(aSpeed);
-        return 0;
+        if (altitudeToPlanetCenter < pAHL) {
+            double atmPressure = 100.13 * Math.pow(Math.E, -(altitudeToPlanetCenter - pRadius) / 5600); //Calculates atmospheric pressure of the atmosphere.
+            return 0.5 * atmPressure * Math.pow((Math.sqrt(Math.pow(rXSpeed / 100, 2) + Math.pow(rYSpeed / 100, 2))), 2) * 0.2 * 2; //Calculates atmospheric drag
+            //See link for details: http://wiki.kerbalspaceprogram.com/wiki/Atmosphere
+        } else {
+            return 0;
+        }
     }
 
     /**
@@ -228,7 +237,15 @@ class Calculations {
      * @return Force of thrust in Newtons.
      */
     private double calcT() {
-        return sThrottle * rThrust;
+        if (rFuel > 0) {
+            if (sThrottle > 0) {
+                rFuel -= 492.74 / 1000 * sThrottle;
+                rMass = 12.75 * 1000 + rFuel;
+                return sThrottle * rThrust;
+            }
+        }
+        return 0;
+
         //The total thrust would be limited by the throttle as a percentage of the thrust.  
     }
 
@@ -273,24 +290,23 @@ class Calculations {
      */
     private void rotateTo(int SASpos) {
 //        System.out.println("is opposite: " + ((angle) > fix(hAngle[SASpos] + 178) && (angle) < fix(hAngle[SASpos] - 178)) + ", " + fix(hAngle[SASpos] - 178));
-        if (((Math.signum(paSpeed[0]) * Math.signum(paSpeed[1]) == -1) && true)
+        if (((Math.signum(previousASpeed[0]) * Math.signum(previousASpeed[1]) == -1) && true)
                 || ((angle) > fix(hAngle[SASpos] + 178) && (angle) < fix(hAngle[SASpos] - 178))) {
-//            System.out.println("#####################################################################");
 
             if ((angle) > hAngle[SASpos]) {
                 if ((angle) - hAngle[SASpos] > 180) {
                     midAngle = fix((((angle) - 360) + hAngle[SASpos]) / 2);
-                } else  {
+                } else {
                     midAngle = fix((((angle)) + hAngle[SASpos]) / 2);
                 }
             } else {
                 if (hAngle[SASpos] - (angle) > 180) {
                     midAngle = fix(((hAngle[SASpos] - 360) + (angle)) / 2);
-                } else  {
+                } else {
                     midAngle = fix(((hAngle[SASpos]) + (angle)) / 2);
                 }
             }
-            
+
 //            midAngle = ((hAngle[SASpos] + (angle)) % 360) / 2;
 //            System.out.println("New intermediate: " + midAngle);
             slowSpin = true;
@@ -327,8 +343,8 @@ class Calculations {
         }
 //        System.out.println(" Target: " + hAngle[SASpos] + ", current: " + (angle) + ", direction of travel: " + leftORright((angle), hAngle[SASpos]) + ", slowDirection: " + leftORright((angle), midAngle));
 
-        paSpeed[0] = paSpeed[1];
-        paSpeed[1] = aSpeed;
+        previousASpeed[0] = previousASpeed[1];
+        previousASpeed[1] = aSpeed;
     }
 
     /**
@@ -366,23 +382,23 @@ class Calculations {
         return 0;
     }
 
-    public static double travelAngle(double xSpeed, double ySpeed) {
-        if (Math.signum(xSpeed) == 1 && Math.signum(ySpeed) == 1) {
-            return (((Math.toDegrees(Math.atan(xSpeed / ySpeed)))) + 0);
-        } else if (Math.signum(xSpeed) == 1 && Math.signum(ySpeed) == -1) {
-            return (((Math.toDegrees(Math.atan(xSpeed / ySpeed)))) + 180);
-        } else if (Math.signum(xSpeed) == -1 && Math.signum(ySpeed) == -1) {
-            return (((Math.toDegrees(Math.atan(xSpeed / ySpeed)))) + 180);
-        } else if (Math.signum(xSpeed) == -1 && Math.signum(ySpeed) == 1) {
-            return (360 - (Math.abs(Math.toDegrees(Math.atan(xSpeed / ySpeed)))));
+    public static double travelAngle(double x, double y) {
+        if (Math.signum(x) == 1 && Math.signum(y) == 1) {
+            return (((Math.toDegrees(Math.atan(x / y)))) + 0);
+        } else if (Math.signum(x) == 1 && Math.signum(y) == -1) {
+            return (((Math.toDegrees(Math.atan(x / y)))) + 180);
+        } else if (Math.signum(x) == -1 && Math.signum(y) == -1) {
+            return (((Math.toDegrees(Math.atan(x / y)))) + 180);
+        } else if (Math.signum(x) == -1 && Math.signum(y) == 1) {
+            return (360 - (Math.abs(Math.toDegrees(Math.atan(x / y)))));
 //##############################################################################
-        } else if (Math.signum(xSpeed) == 0 && Math.signum(ySpeed) == 1) {
+        } else if (Math.signum(x) == 0 && Math.signum(y) == 1) {
             return 0;
-        } else if (Math.signum(xSpeed) == 1 && Math.signum(ySpeed) == 0) {
+        } else if (Math.signum(x) == 1 && Math.signum(y) == 0) {
             return 90;
-        } else if (Math.signum(xSpeed) == 0 && Math.signum(ySpeed) == -1) {
+        } else if (Math.signum(x) == 0 && Math.signum(y) == -1) {
             return 180;
-        } else if (Math.signum(xSpeed) == -1 && Math.signum(ySpeed) == 0) {
+        } else if (Math.signum(x) == -1 && Math.signum(y) == 0) {
             return 270;
         }
 
@@ -396,7 +412,7 @@ class Calculations {
      */
     public void controls() {
 
-        if (passThrough1[6] == 1) {
+        if (controls[2] == 1) {
 //            System.out.println("Left");
             if (aSpeed > -7) {
                 aSpeed -= 0.01;
@@ -405,7 +421,7 @@ class Calculations {
 //            passThrough1[8] = 0;
         }
 
-        if (passThrough1[7] == 1) {
+        if (controls[3] == 1) {
 //            System.out.println("Right");
             if (aSpeed < 7) {
                 aSpeed += 0.01;
@@ -413,7 +429,7 @@ class Calculations {
 //            passThrough1[8] = 0;
         }
 
-        if (passThrough1[7] == 10) {        //Puts rocket in preset orbit
+        if (controls[7] == 10) {        //Puts rocket in preset orbit
 //            System.out.println("HOME");
             xPos = 0;
             yPos = (pRadius + 100000) * accuracy;
@@ -423,25 +439,27 @@ class Calculations {
             rYSpeed = 0;
         }
 
-        if (passThrough1[4] == 1) {
+        if (controls[8] == 10) {
+            rFuel = 16000;
+        }
+        if (controls[0] == 1) {
 //            System.out.println("1Up");
             sThrottle += 0.005;
             if (sThrottle > 1) {
                 sThrottle = 1;
             }
-        } else if (passThrough1[4] == -1) {     //The 'Z' key
+        } else if (controls[0] == -1) {     //The 'Z' key
 //            System.out.println("Cancel Throttle");
             sThrottle = 0;
         }
 
-        if (passThrough1[5] == 1) {
+        if (controls[1] == 1) {
 //            System.out.println("1Down");
             sThrottle -= 0.005;
             if (sThrottle < 0) {
                 sThrottle = 0;
             }
-
-        } else if (passThrough1[5] == 10) {     //The 'X' key
+        } else if (controls[1] == 10) {     //The 'X' key
 //            System.out.println("Full Throttle");
             sThrottle = 1;
         }
@@ -449,11 +467,8 @@ class Calculations {
     }
 
     //Setters
-    public void setxPos(double xPos) {
+    public void setRPos(double xPos, double yPos) {
         this.xPos = xPos;
-    }
-
-    public void setyPos(double yPos) {
         this.yPos = yPos;
     }
 
@@ -479,10 +494,6 @@ class Calculations {
 
     public void setsThrottle(double sThrottle) {
         this.sThrottle = sThrottle;
-    }
-
-    public void setDrag(long drag) {
-        this.drag = drag;
     }
 
     public void setrMass(double rMass) {

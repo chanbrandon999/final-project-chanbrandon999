@@ -7,6 +7,7 @@ package ISU;
 
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 
 /**
@@ -15,6 +16,8 @@ import javax.swing.JFrame;
  */
 public class ISU {
 
+    static JFrame frame;
+
     /**
      * Creates and displays the Movement class Window
      *
@@ -22,7 +25,7 @@ public class ISU {
      */
     private static void createAndShowGUI() {
 
-        JFrame frame = new JFrame("Rocket Simulation");
+        frame = new JFrame("Rocket Simulation");
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
@@ -30,11 +33,30 @@ public class ISU {
         int setY = gd.getDisplayMode().getHeight() - 100;
 
 //        int setX = 700, setY = 700; //Flexible window dimensions
-        Movement mvmnt = new Movement(setX, setY);
+        Movement mvmnt = new Movement();
         frame.add(mvmnt);
         frame.setSize(setX, setY);
         frame.setVisible(true);
 
+    }
+
+    public static void restartGame() {
+//        frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+        frame.setVisible(false);
+        frame.dispose();
+
+        createAndShowGUI();
+
+//        frame = new JFrame("Rocket Simulation");
+//        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+//        int setX = gd.getDisplayMode().getWidth() - 700;
+//        int setY = gd.getDisplayMode().getHeight() - 100;
+//
+//        Movement mvmnt = new Movement();
+//        frame.add(mvmnt);
+//        frame.setSize(setX, setY);
+//        frame.setVisible(true);
     }
 
     public static void main(String[] args) {

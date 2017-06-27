@@ -6,6 +6,7 @@
 package ISU;
 
 import static ISU.Calculations.travelAngle;
+import static ISU.Calculations.trigAngle;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -21,15 +22,17 @@ public class CalculationsTest {
 
     @Test
     public void testPositionUpdate() {
+//        Calculations c = new Calculations();
+//        c.setRPos(100, 100);
+//        c.positionUpdate(new double[10]);
+//        assertEquals(true, c.xForce > 9.7 && c.xForce < 9.81);
+//        assertEquals(true, true);
+//        assertEquals(true, true);
+        
+        
     }
 
-    @Test
-    public void testTrigAngle_3args() {
-    }
-
-    @Test
-    public void testTrigAngle_String_double() {
-    }
+ 
 
     @Test
     public void testControls() {
@@ -53,6 +56,10 @@ public class CalculationsTest {
         assertEquals(90,(int) travelAngle(1, 0));
         assertEquals(180,(int) travelAngle(0, -1));
         assertEquals(270,(int) travelAngle(-1, 0));
+        assertEquals(45,(int) travelAngle(1, 1));
+        assertEquals(45 + 90,(int) travelAngle(1, -1));
+        assertEquals(45 + 2 * 90,(int) travelAngle(-1, -1));
+        assertEquals(45 + 3 * 90,(int) travelAngle(-1, 1));
     }
     
         @Test
@@ -60,7 +67,21 @@ public class CalculationsTest {
         assertEquals(350,(int) c.fix(-10));
         assertEquals(10,(int) c.fix(10));
         assertEquals(180,(int) c.fix(180));
-        
     }
+
+    @Test
+    public void testTrigAngle_char_double() {
+        assertEquals(Math.sin(-45), trigAngle('s',-1,1), 1);
+    }
+
+    @Test
+    public void testFix() {
+    }
+
+    @Test
+    public void testLeftORright() {
+    }
+
+
 
 }

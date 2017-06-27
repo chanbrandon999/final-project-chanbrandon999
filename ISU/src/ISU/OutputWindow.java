@@ -140,7 +140,7 @@ public class OutputWindow extends javax.swing.JFrame {
         });
     }
 
-    public void toOutputWindow(double calcT, double calcG, double trigAngle1, double tempXF, double tempYF, double xAccel, double yAccel, double altitudeToPlanetCenter, double aSpeed, double xPos, double yPos, double angle, double trigAngle2, double xSpeed, double ySpeed) {
+    public void toOutputWindow(double calcT, double calcG, double trigAngle1, double tempXF, double tempYF, double xAccel, double yAccel, double altitudeToPlanetCenter, double aSpeed, double xPos, double yPos, double angle, double trigAngle2, double xSpeed, double ySpeed, double dragX, double dragY) {
 
 //        (calcT(), calcG(), trigAngle("c", xPos, yPos), tempXF, tempYF, xAccel, yAccel, altitudeToPlanetCenter, xPos, yPos, angle, trigAngle("c", angle)
         this.jTextField1.setText("Thrust Force: " + (float) calcT + ", \tGravity force " + (float) calcG + ", \t Gravity cos: " + (float)trigAngle1);
@@ -149,7 +149,7 @@ public class OutputWindow extends javax.swing.JFrame {
         this.jTextField4.setText("Altitude = " + (float)altitudeToPlanetCenter + ", \t\taSpeed = " + (float)aSpeed);
         this.jTextField5.setText("Rocket Position: " + (float)xPos / 1000 + ", \t\t" + (float)yPos / 1000 );
         this.jTextField6.setText("ShipAngle: " + (float)angle + ", \t rCosValue: " + (float)trigAngle2 + ", \tTotal: " + (Math.sqrt(Math.pow(ySpeed, 2) + Math.pow(xSpeed, 2))));
-        this.jTextField7.setText("xSpeed: " + xSpeed / 1 + ", \t ySpeed: " + ySpeed / 1);
+        this.jTextField7.setText("xSpeed: " + dragX / 1 + ", \t ySpeed: " + dragY / 1);
 
     }
 
