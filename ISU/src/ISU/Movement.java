@@ -527,8 +527,11 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener, Mou
                 controlPassThrough[1] = 0;
             }
             if (key == KeyEvent.VK_HOME) {
-//                System.out.println("Right");
                 controlPassThrough[7] = 0;
+            }
+
+            if (key == KeyEvent.VK_END) {
+                controlPassThrough[8] = 0;
             }
         }
 

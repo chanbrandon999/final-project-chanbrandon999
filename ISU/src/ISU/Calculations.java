@@ -87,16 +87,17 @@ class Calculations {
      * Updates the position of the rocket based off the forces acting on the
      * rocket
      *
-     * @param passThrough An array of values with the positioning and User Input
+     * @param controlsPassThrough An array of values with the positioning and
+     * User Input
      * @return A second array with the resulting forces acting on the rocket.
      */
-    public void positionUpdate(double[] passThrough) {
+    public void positionUpdate(double[] controlsPassThrough) {
 
         if (timeWarpOn == true) { //Skips 
             xForce = (-calcG() * trigAngle('s', xPos, yPos));
             yForce = (-calcG() * trigAngle('c', xPos, yPos));
         } else {
-            controls = passThrough;
+            controls = controlsPassThrough;
             controls();
             xForce = (calcT() * trigAngle('s', fix(angle + 0 * travelAngle(xPos, yPos)))) - (calcG() * trigAngle('s', xPos, yPos) + calcD() * trigAngle('s', rXSpeed, rYSpeed));
             yForce = (calcT() * trigAngle('c', fix(angle + 0 * travelAngle(xPos, yPos)))) - (calcG() * trigAngle('c', xPos, yPos) + calcD() * trigAngle('c', rXSpeed, rYSpeed));
@@ -105,9 +106,9 @@ class Calculations {
 
         xAccel = (xForce / rMass);
         yAccel = (yForce / rMass);
-        //Adds the forces together to find the acceleration components according to Newton's law: F = mass * acceleration
-        
-        moveRocket();
+        //Adds the forces together to find the acceleration components according to Newton's law: F = mass * acceleration   
+
+        applyMovement();
 
         altitudeToPlanetCenter = (Math.sqrt(Math.pow(xPos / 1000, 2) + Math.pow(yPos / 1000, 2)));
 
@@ -121,7 +122,7 @@ class Calculations {
      * Moves the rocket given the acceleration of the rocket in X and Y
      * directions
      */
-    private void moveRocket() {
+    public void applyMovement() {
 
         rXSpeed += xAccel / tDelay;     //The speed increments each 10 milliseconds 
         rYSpeed += yAccel / tDelay;
@@ -137,8 +138,11 @@ class Calculations {
                 startBlowUp = true;
             }
 
-            xPos = pRadius * trigAngle('s', xPos, yPos) * accuracy;
-            yPos = pRadius * trigAngle('c', xPos, yPos) * accuracy;
+            double crashAngleX = trigAngle('s', xPos, yPos);
+            double crashAngleY = trigAngle('c', xPos, yPos);
+
+            xPos = pRadius * crashAngleX * accuracy;
+            yPos = pRadius * crashAngleY * accuracy;
         }
 
         if (timeWarpOn == false) {
@@ -208,7 +212,7 @@ class Calculations {
      *
      * @return The force of gravity in Newtons
      */
-    private double calcG() {
+    public double calcG() {
 
         if (altitudeToPlanetCenter <= pRadius) { //Checks if the rocket is underneath the planet
             return 0;
@@ -220,7 +224,7 @@ class Calculations {
 
     }
 
-    private double calcD() { //###################################################################################################################
+    public double calcD() { //###################################################################################################################
         if (altitudeToPlanetCenter < pAHL) {
             double atmPressure = 100.13 * Math.pow(Math.E, -(altitudeToPlanetCenter - pRadius) / 5600); //Calculates atmospheric pressure of the atmosphere.
             return 0.5 * atmPressure * Math.pow((Math.sqrt(Math.pow(rXSpeed / 100, 2) + Math.pow(rYSpeed / 100, 2))), 2) * 0.2 * 2; //Calculates atmospheric drag
@@ -236,7 +240,7 @@ class Calculations {
      *
      * @return Force of thrust in Newtons.
      */
-    private double calcT() {
+    public double calcT() {
         if (rFuel > 0) {
             if (sThrottle > 0) {
                 rFuel -= 492.74 / 1000 * sThrottle;
@@ -245,7 +249,6 @@ class Calculations {
             }
         }
         return 0;
-
         //The total thrust would be limited by the throttle as a percentage of the thrust.  
     }
 
@@ -307,8 +310,6 @@ class Calculations {
                 }
             }
 
-//            midAngle = ((hAngle[SASpos] + (angle)) % 360) / 2;
-//            System.out.println("New intermediate: " + midAngle);
             slowSpin = true;
         }
 
@@ -316,22 +317,21 @@ class Calculations {
             aSpeed -= 0.01;
         } else if (aSpeed < -1.5) {
             aSpeed += 0.01;
-        } else //
-        //            
-        if (leftORright((angle), midAngle) == 1 && slowSpin == true && leftORright((angle), hAngle[SASpos]) == -1) {
-//            System.out.print("33");
+            //This part slows down the ship if it is going too fast 
+        } else if (leftORright((angle), midAngle) == 1 && slowSpin == true && leftORright((angle), hAngle[SASpos]) == -1) {
             aSpeed += 0.01;
+            //Made for when the ship rotation needs to slow down when travelling to the left 
         } else if (leftORright((angle), midAngle) == -1 && slowSpin == true && leftORright((angle), hAngle[SASpos]) == 1) {
-//            System.out.print("44");
             aSpeed -= 0.01;
-//            
+            //Made for when the ship rotation needs to slow down when travelling to the right 
         } else if (leftORright((angle), hAngle[SASpos]) == -1) {
-//            System.out.print("11");
             aSpeed -= 0.01;
+            //Made for when the ship rotation needs to rotate to the left 
         } else if (leftORright((angle), hAngle[SASpos]) == 1) {
-//            System.out.print("22");
             aSpeed += 0.01;
+            //Made for when the ship rotation needs to rotate to the right
         } else {
+            //Resorts to slowing the rotation if all else does not meet the conditions
             if (aSpeed > hAngle[SASpos]) {
                 aSpeed -= 0.01;
             } else if (aSpeed < hAngle[SASpos]) {
@@ -339,7 +339,6 @@ class Calculations {
             } else {
                 aSpeed = 0;
             }
-//            System.out.println("Here012471204712047120712044104");
         }
 //        System.out.println(" Target: " + hAngle[SASpos] + ", current: " + (angle) + ", direction of travel: " + leftORright((angle), hAngle[SASpos]) + ", slowDirection: " + leftORright((angle), midAngle));
 
@@ -348,7 +347,8 @@ class Calculations {
     }
 
     /**
-     * Changes negative angles to positive angles
+     * Changes negative angles to positive angles, and reduces angles higher
+     * than 360.
      *
      * @param angle The angle to see if it needs fixing
      * @return The fixed angle from 0 < to < 360
@@ -363,8 +363,8 @@ class Calculations {
     }
 
     /**
-     * Returns which direction the rocket should turn for the fastest arrival to
-     * angle2
+     * Returns which direction the rocket should turn for the shortest distance
+     * to angle2
      *
      * @param angle The angle the rocket is pointing at
      * @param angle2 The desired pointed angle
@@ -372,7 +372,7 @@ class Calculations {
      */
     public int leftORright(double angle, double angle2) {
         double angleL = fix((angle - angle2) % 360);
-        double other = fix(360 - angleL);
+        double other = fix((360 - angleL) % 360);
 //        System.out.println("angleL: " + angleL + ", other: " + other);
         if (angleL < other) {
             return -1;
@@ -412,49 +412,16 @@ class Calculations {
      */
     public void controls() {
 
-        if (controls[2] == 1) {
-//            System.out.println("Left");
-            if (aSpeed > -7) {
-                aSpeed -= 0.01;
-            }
-
-//            passThrough1[8] = 0;
-        }
-
-        if (controls[3] == 1) {
-//            System.out.println("Right");
-            if (aSpeed < 7) {
-                aSpeed += 0.01;
-            }
-//            passThrough1[8] = 0;
-        }
-
-        if (controls[7] == 10) {        //Puts rocket in preset orbit
-//            System.out.println("HOME");
-            xPos = 0;
-            yPos = (pRadius + 100000) * accuracy;
-//        rXSpeed = 2427 * 2 * 100;
-//            rXSpeed = 2427 * 3 * 1 - 177.25;
-            rXSpeed = 2243 * 1;
-            rYSpeed = 0;
-        }
-
-        if (controls[8] == 10) {
-            rFuel = 16000;
-        }
-        if (controls[0] == 1) {
-//            System.out.println("1Up");
+        if (controls[0] == 1) {             //W key
             sThrottle += 0.005;
             if (sThrottle > 1) {
                 sThrottle = 1;
             }
         } else if (controls[0] == -1) {     //The 'Z' key
-//            System.out.println("Cancel Throttle");
             sThrottle = 0;
         }
 
-        if (controls[1] == 1) {
-//            System.out.println("1Down");
+        if (controls[1] == 1) { //S key
             sThrottle -= 0.005;
             if (sThrottle < 0) {
                 sThrottle = 0;
@@ -462,6 +429,29 @@ class Calculations {
         } else if (controls[1] == 10) {     //The 'X' key
 //            System.out.println("Full Throttle");
             sThrottle = 1;
+        }
+
+        if (controls[2] == 1) {     //A key
+            if (aSpeed > -7) {
+                aSpeed -= 0.01;
+            }
+        }
+
+        if (controls[3] == 1) { //D key
+            if (aSpeed < 7) {
+                aSpeed += 0.01;
+            }
+        }
+
+        if (controls[7] == 10) {        //Puts rocket in preset orbit //Home key
+            xPos = 0;
+            yPos = (pRadius + 100000) * accuracy;
+            rXSpeed = 2243 * 1;
+            rYSpeed = 0;
+        }
+
+        if (controls[8] == 10) {        //End key, fills fuel
+            rFuel = 16000;
         }
 
     }

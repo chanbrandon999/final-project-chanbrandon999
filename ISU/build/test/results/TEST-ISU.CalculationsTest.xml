@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite errors="0" failures="1" hostname="Aerisoubg-D" name="ISU.CalculationsTest" skipped="0" tests="8" time="0.364" timestamp="2017-06-27T03:35:14">
+<testsuite errors="0" failures="0" hostname="Aerisoubg-D" name="ISU.CalculationsTest" skipped="0" tests="12" time="0.406" timestamp="2017-06-27T20:49:55">
   <properties>
     <property name="netbeans.autoupdate.country" value="CA" />
     <property name="javac.test.classpath" value=":build/classes:D:\Program Files\NetBeans 8.2\platform\modules\ext\junit-4.12.jar:D:\Program Files\NetBeans 8.2\platform\modules\ext\hamcrest-core-1.3.jar" />
@@ -37,7 +37,7 @@
     <property name="user.name" value="Someone" />
     <property name="copylibs.rebase" value="true" />
     <property name="libs.swing-layout.maven-pom" value="" />
-    <property name="sun.java.command" value="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner ISU.CalculationsTest skipNonTests=false filtertrace=true haltOnError=false haltOnFailure=false showoutput=true outputtoformatters=true logfailedtests=true threadid=0 logtestlistenerevents=true formatter=org.apache.tools.ant.taskdefs.optional.junit.BriefJUnitResultFormatter formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,D:\Documents\50 - GitHub\final-project-chanbrandon999\ISU\build\test\results\TEST-ISU.CalculationsTest.xml crashfile=D:\Documents\50 - GitHub\final-project-chanbrandon999\ISU\build\junitvmwatcher8404133136004800385.properties propsfile=D:\Documents\50 - GitHub\final-project-chanbrandon999\ISU\build\junit429235927028946674.properties" />
+    <property name="sun.java.command" value="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner ISU.CalculationsTest skipNonTests=false filtertrace=true haltOnError=false haltOnFailure=false showoutput=true outputtoformatters=true logfailedtests=true threadid=0 logtestlistenerevents=true formatter=org.apache.tools.ant.taskdefs.optional.junit.BriefJUnitResultFormatter formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,D:\Documents\50 - GitHub\final-project-chanbrandon999\ISU\build\test\results\TEST-ISU.CalculationsTest.xml crashfile=D:\Documents\50 - GitHub\final-project-chanbrandon999\ISU\build\junitvmwatcher1003255852347172180.properties propsfile=D:\Documents\50 - GitHub\final-project-chanbrandon999\ISU\build\junit4222465972535521615.properties" />
     <property name="build.classes.dir" value="build/classes" />
     <property name="netbeans.accept_license_class" value="org.netbeans.license.AcceptLicense" />
     <property name="build.sysclasspath" value="ignore" />
@@ -308,19 +308,18 @@
     <property name="platform.active" value="default_platform" />
     <property name="awt.toolkit" value="sun.awt.windows.WToolkit" />
   </properties>
-  <testcase classname="ISU.CalculationsTest" name="testFix" time="0.001" />
-  <testcase classname="ISU.CalculationsTest" name="testleftORright" time="0.0" />
-  <testcase classname="ISU.CalculationsTest" name="testTrigAngle_char_double" time="0.014" />
-  <testcase classname="ISU.CalculationsTest" name="testTravelAngle" time="0.0" />
+  <testcase classname="ISU.CalculationsTest" name="testleftORright" time="0.001" />
+  <testcase classname="ISU.CalculationsTest" name="testTrigAngle_char_double" time="0.003" />
+  <testcase classname="ISU.CalculationsTest" name="testCalcD" time="0.009" />
+  <testcase classname="ISU.CalculationsTest" name="testCalcG" time="0.008" />
+  <testcase classname="ISU.CalculationsTest" name="testCalcT" time="0.009" />
+  <testcase classname="ISU.CalculationsTest" name="testTravelAngle" time="0.001" />
   <testcase classname="ISU.CalculationsTest" name="testControls" time="0.0" />
-  <testcase classname="ISU.CalculationsTest" name="testFixAngle" time="0.001" />
-  <testcase classname="ISU.CalculationsTest" name="testLeftORright" time="0.0" />
-  <testcase classname="ISU.CalculationsTest" name="testPositionUpdate" time="0.011">
-    <failure message="expected:&lt;true&gt; but was:&lt;false&gt;" type="junit.framework.AssertionFailedError">junit.framework.AssertionFailedError: expected:&lt;true&gt; but was:&lt;false&gt;
-	at ISU.CalculationsTest.testPositionUpdate(CalculationsTest.java:30)
-</failure>
-  </testcase>
-  <system-out><![CDATA[force0.0
-]]></system-out>
+  <testcase classname="ISU.CalculationsTest" name="testFixAngle" time="0.0" />
+  <testcase classname="ISU.CalculationsTest" name="testLeftORright" time="0.006" />
+  <testcase classname="ISU.CalculationsTest" name="testPositionUpdate" time="0.007" />
+  <testcase classname="ISU.CalculationsTest" name="testMoveRocket" time="0.006" />
+  <testcase classname="ISU.CalculationsTest" name="testTrigAngle_char_double_double" time="0.0" />
+  <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
