@@ -21,7 +21,7 @@ public class Calculations {
     public double yPos = pRadius * accuracy;       //The position of the rocket in the Y direction (in milimeters)
     public double aSpeed, angle;                                //Initializing the angular throttles (in degrees per 10 milliseconds)
     public double rXSpeed = 0, rYSpeed = 0, sThrottle = 0;      //Setting the rocket speeds in the X and Y directions (meters per second) && Initializing rocket throttle (0 to 1)
-    long rThrust = 1500 * 1000 * 1;                             //Setting the maximum thrust of the rocket (in Newtons)
+    long rThrust = 1500 * 1000 * 100;                             //Setting the maximum thrust of the rocket (in Newtons)
     double pGravity = 9.81;                                     //Setting the strength of gravity at the surface (in m/s^2)
     double pAHL = 670000;                                       //Setting the atmospheric height limit where the atmosphere is no longer simulated (in meters)
     double[][] stars = new double[50][3];                       //Initializes the star array for each of the star positions (in virtual screen position)
@@ -134,8 +134,10 @@ public class Calculations {
 
         if ((Math.sqrt(Math.pow(xPos / accuracy, 2) + Math.pow(yPos / accuracy, 2))) < pRadius) {   //Checks if the rocket goes underneath the ground (don't change to altitudeToPlanetCenter-will break test cases)
 
-            if ((Math.sqrt(Math.pow(rXSpeed * delay, 2) + Math.pow(rYSpeed * delay, 2))) > 6) {     //Checks if it hits it hard enough to blow up. Crash tolerance is 6 m/s
-                startBlowUp = true;                                                                  //Start rocket blowing up sequence in Movement
+            if ((Math.sqrt(Math.pow(rXSpeed / delay, 2) + Math.pow(rYSpeed / delay, 2))) > 6) {     //Checks if it hits it hard enough to blow up. Crash tolerance is 6 m/s
+                startBlowUp = true;                                                                 
+                
+//Start rocket blowing up sequence in Movement
             }
 
             //Sets the initial crash angles to prevent inaccuracies between calculations
