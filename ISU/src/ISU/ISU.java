@@ -29,7 +29,7 @@ public class ISU {
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        int setX = gd.getDisplayMode().getWidth() - 100;
+        int setX = gd.getDisplayMode().getWidth() - 700;
         int setY = gd.getDisplayMode().getHeight() - 100;
 
 //        int setX = 700, setY = 700; //Flexible window dimensions

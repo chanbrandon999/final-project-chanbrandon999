@@ -23,7 +23,7 @@ public class CalculationsTest {
 
     @Test
     public void testPositionUpdate() {
-        Calculations c = new Calculations();
+//        Calculations c = new Calculations();
         c.xPos = 0;
         c.yPos = 610000 * 1000;
 
@@ -37,13 +37,16 @@ public class CalculationsTest {
             c.positionUpdate(new double[]{1, 0, 0, 0, 0, 0, 0, 0, 0, 0});
             assertEquals((c.rThrust * c.sThrottle - (c.calcG() + c.calcD())) / c.rMass, c.yAccel, 0.01);
         }
-        assertEquals(0, c.xAccel, 0.01);
+
+        c.angle = 90;
+        c.positionUpdate(new double[]{1, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+        assertEquals((c.rThrust * c.sThrottle - ((c.calcG() * trigAngle('s', c.xPos, c.yPos) + c.calcD() * trigAngle('s', c.rXSpeed, c.rYSpeed)))) / c.rMass, c.xAccel, 0.01);
 
     }
 
     @Test
     public void testMoveRocket() {
-        Calculations c = new Calculations();
+//        Calculations c = new Calculations();
         c.xAccel = 2;
         c.yAccel = 2;
         c.applyMovement();
@@ -82,10 +85,6 @@ public class CalculationsTest {
         c.applyMovement();
         assertEquals(true, c.startBlowUp);
 
-    }
-
-    @Test
-    public void testControls() {
     }
 
     @Test
@@ -138,11 +137,15 @@ public class CalculationsTest {
 
         assertEquals(Math.cos(-45), trigAngle('c', -1, 1), 1);
         assertEquals(0, trigAngle('X', -1, 1), 1);
+        assertEquals(0, trigAngle('s', 1, 0), 1);
+        assertEquals(0, trigAngle('c', 1, 0), 1);
+        assertEquals(0, trigAngle('s', 0, 0), 1);
+        assertEquals(0, trigAngle('c', 0, 1), 1);
     }
 
     @Test
     public void testLeftORright() {
-        Calculations c = new Calculations();
+//        Calculations c = new Calculations();
 
         assertEquals(0, c.leftORright(0, 0));
         assertEquals(1, c.leftORright(350, 10));
@@ -156,7 +159,7 @@ public class CalculationsTest {
 
     @Test
     public void testCalcT() {
-        Calculations c = new Calculations();
+//        Calculations c = new Calculations();
         c.sThrottle = 1;
         assertEquals(1500000, c.calcT(), 1);
         c.sThrottle = 0.5;
@@ -170,7 +173,7 @@ public class CalculationsTest {
 
     @Test
     public void testCalcG() {
-        Calculations c = new Calculations();
+//        Calculations c = new Calculations();
         c.altitudeToPlanetCenter = 650000;
         assertEquals(8.358816568 * 28750, c.calcG(), .1);
         c.altitudeToPlanetCenter = 600000 + 200000;
@@ -182,7 +185,7 @@ public class CalculationsTest {
 
     @Test
     public void testCalcD() {
-        Calculations c = new Calculations();
+//        Calculations c = new Calculations();
         c.altitudeToPlanetCenter = 610000;
         c.rXSpeed = 100 * 100;
         c.rYSpeed = 100 * 100;
@@ -195,6 +198,59 @@ public class CalculationsTest {
         c.rXSpeed = 0;
         c.rYSpeed = 0;
         assertEquals(0, c.calcD(), .1);
+    }
+
+    @Test
+    public void testRotationControl() {
+
+        c.rXSpeed = 10;
+        c.rYSpeed = 0;
+        c.xPos = 0;
+        c.yPos = 700000 * 1000;
+
+        for (int k = 0; k < 360; k++) {
+
+            for (int j = 0; j < 4; j++) { //tests to see if it will correctly turn to the specified positions 
+                c.angle = k;
+
+                for (int i = 0; i < 1000; i++) {
+                    c.rotationControl(j + 2);
+                    c.angle += c.aSpeed;
+//                    System.out.println("angle: " + c.angle + ", hAngle[" + j + "]: " + c.hAngle[j] + "midAngle " + c.midAngle);
+                }
+                c.angle = c.fix(c.angle);
+                if ((c.angle > 359 && c.hAngle[j] > 359) || (c.angle < 1 && c.hAngle[j] > 359)) {
+                    assertEquals(true, true);
+                } else {
+                    assertEquals(true, c.angle > c.fix(c.hAngle[j] - 1) && c.angle < c.fix(c.hAngle[j] + 1));
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testControls() {
+        c.controls = new double[]{1, 0, 1, 0, 0, 0, 0, 0, 0, 0};
+        for (int i = 0; i < 15; i++) {
+            c.controls();
+        }
+        assertEquals(0.075, c.sThrottle, 0.0001);
+        assertEquals(-0.15, c.aSpeed, 0.0001);
+
+        c.controls = new double[]{0, 1, 0, 1, 0, 0, 0, 0, 0, 0};
+        for (int i = 0; i < 10; i++) {
+            c.controls();
+        }
+        assertEquals(0.025, c.sThrottle, 0.0001);
+        assertEquals(-0.05, c.aSpeed, 0.0001);
+
+        c.controls = new double[]{-1, 0, 0, 0, 0, 0, 0, 10, 10};
+        c.controls();
+        assertEquals(0, c.sThrottle, 0.0001);
+        assertEquals(700000 * 1000, c.yPos, 0.0001);
+        assertEquals(2243, c.rXSpeed, 0.0001);
+        assertEquals(16000, c.rFuel, 0.0001);
+
     }
 
 }
