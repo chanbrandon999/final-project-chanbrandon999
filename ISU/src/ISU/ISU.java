@@ -17,6 +17,8 @@ import javax.swing.JFrame;
 public class ISU {
 
     static JFrame frame;
+    
+    static int setX, setY;
 
     /**
      * Creates and displays the Movement class Window
@@ -29,8 +31,8 @@ public class ISU {
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        int setX = gd.getDisplayMode().getWidth() - 700;
-        int setY = gd.getDisplayMode().getHeight() - 100;
+        setX = gd.getDisplayMode().getWidth() - 700;
+        setY = gd.getDisplayMode().getHeight() - 100;
 
 //        int setX = 700, setY = 700; //Flexible window dimensions
         Movement mvmnt = new Movement();
@@ -66,6 +68,16 @@ public class ISU {
             }
         });
 
+    }
+
+    public static int getScreenSize(char xORy) {
+
+        if (xORy == 'x') {
+            return setX;
+        } else if (xORy == 'y') {
+            return setY;
+        }
+        return 0;
     }
 
 }

@@ -23,33 +23,35 @@ public class CalculationsTest {
 
     @Test
     public void testPositionUpdate() {
-//        Calculations c = new Calculations();
+        Calculations c = new Calculations();
         c.xPos = 0;
         c.yPos = 610000 * 1000;
 
-        c.positionUpdate(new double[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+        c.positionUpdate(new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
         assertEquals(610000, c.altitudeToPlanetCenter, 0.01);
-        c.positionUpdate(new double[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+        c.positionUpdate(new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
         assertEquals(0, c.xPos, 0.01);
         assertEquals((610000 - (c.calcG() / c.rMass) / 10000) * 1000, c.yPos, 0.01);
         assertEquals(-(c.calcG() + c.calcD()) / c.rMass, c.yAccel, 0.01);
         for (int i = 0; i < 10; i++) {
-            c.positionUpdate(new double[]{1, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+            c.positionUpdate(new int[]{1, 0, 0, 0, 0, 0, 0, 0, 0, 0});
             assertEquals((c.rThrust * c.sThrottle - (c.calcG() + c.calcD())) / c.rMass, c.yAccel, 0.01);
         }
 
         c.angle = 90;
-        c.positionUpdate(new double[]{1, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+        c.positionUpdate(new int[]{1, 0, 0, 0, 0, 0, 0, 0, 0, 0});
         assertEquals((c.rThrust * c.sThrottle - ((c.calcG() * trigAngle('s', c.xPos, c.yPos) + c.calcD() * trigAngle('s', c.rXSpeed, c.rYSpeed)))) / c.rMass, c.xAccel, 0.01);
 
     }
 
     @Test
     public void testMoveRocket() {
-//        Calculations c = new Calculations();
+        Calculations c = new Calculations();
+        
         c.xAccel = 2;
         c.yAccel = 2;
         c.applyMovement();
+        System.out.println("alt " + c.altitudeToPlanetCenter);
         assertEquals(0.2, c.xPos, 0.01);
         assertEquals(600000000 + 0.2, c.yPos, 0.01);
 
@@ -145,7 +147,7 @@ public class CalculationsTest {
 
     @Test
     public void testLeftORright() {
-//        Calculations c = new Calculations();
+        Calculations c = new Calculations();
 
         assertEquals(0, c.leftORright(0, 0));
         assertEquals(1, c.leftORright(350, 10));
@@ -173,7 +175,7 @@ public class CalculationsTest {
 
     @Test
     public void testCalcG() {
-//        Calculations c = new Calculations();
+        Calculations c = new Calculations();
         c.altitudeToPlanetCenter = 650000;
         assertEquals(8.358816568 * 28750, c.calcG(), .1);
         c.altitudeToPlanetCenter = 600000 + 200000;
@@ -185,15 +187,15 @@ public class CalculationsTest {
 
     @Test
     public void testCalcD() {
-//        Calculations c = new Calculations();
+        Calculations c = new Calculations();
         c.altitudeToPlanetCenter = 610000;
         c.rXSpeed = 100 * 100;
         c.rYSpeed = 100 * 100;
-        assertEquals(67158.092, c.calcD(), .1);
+        assertEquals(164873.12, c.calcD(), .1);
         c.altitudeToPlanetCenter = 605000;
         c.rXSpeed = 10000;
         c.rYSpeed = -10000;
-        assertEquals(164006.5818, c.calcD(), .1);
+        assertEquals(402636.16, c.calcD(), .1);
         c.altitudeToPlanetCenter = 600000;
         c.rXSpeed = 0;
         c.rYSpeed = 0;
@@ -230,21 +232,21 @@ public class CalculationsTest {
 
     @Test
     public void testControls() {
-        c.controls = new double[]{1, 0, 1, 0, 0, 0, 0, 0, 0, 0};
+        c.controls = new int[]{1, 0, 1, 0, 0, 0, 0, 0, 0, 0};
         for (int i = 0; i < 15; i++) {
             c.controls();
         }
         assertEquals(0.075, c.sThrottle, 0.0001);
         assertEquals(-0.15, c.aSpeed, 0.0001);
 
-        c.controls = new double[]{0, 1, 0, 1, 0, 0, 0, 0, 0, 0};
+        c.controls = new int[]{0, 1, 0, 1, 0, 0, 0, 0, 0, 0};
         for (int i = 0; i < 10; i++) {
             c.controls();
         }
         assertEquals(0.025, c.sThrottle, 0.0001);
         assertEquals(-0.05, c.aSpeed, 0.0001);
 
-        c.controls = new double[]{-1, 0, 0, 0, 0, 0, 0, 10, 10};
+        c.controls = new int[]{-1, 0, 0, 0, 0, 0, 0, 10, 10};
         c.controls();
         assertEquals(0, c.sThrottle, 0.0001);
         assertEquals(700000 * 1000, c.yPos, 0.0001);
