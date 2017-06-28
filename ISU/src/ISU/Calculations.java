@@ -1,18 +1,21 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package ISU;
 
 import java.util.Random;
 import javax.swing.JFrame;
+import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 
-class Calculations {
+/**
+ * This class is responsible for handling the physics of the rocket. Handles the
+ * controls, calculates the next position/angle and all the forces acting on the
+ * rocket.
+ *
+ * @author Brandon
+ */
+public class Calculations {
 
-    int accuracy = 1000; //Percision for the smallest unit of measurment when moving the rocket (in milimeters)
-    int delay = 10;         //Delay in between running the program
-    int tDelay = 1000 / delay;      //Delay in number of second divisions
+    int accuracy = 1000;                //Percision for the smallest unit of measurment when moving the rocket (in milimeters)
+    int delay = 10;                     //Delay in between running the program
+    int tDelay = 1000 / delay;          //Delay in number of second divisions
     long pRadius = 1 * 600000;                    //The raduis of the planet in Meters
     public double xPos = 0;                        //The position of the rocket in the X direction (in milimeters)
     public double yPos = pRadius * accuracy;       //The position of the rocket in the Y direction (in milimeters)
@@ -41,11 +44,9 @@ class Calculations {
     double[] previousASpeed = new double[2];        //The previous angular speed the rocket was traveling at to determine if it switches direction
     boolean firstTurn = true;                       //Whether or not the rocket has started pointing in the right direction or not
 
-    Random rand = new Random(); //Random number generator
+    Random rand = new Random();                     //Random number generator for the stars
     OutputWindow flightStats = new OutputWindow();          //An output window in which it would display flight data (forces, acceleration, angles, etc.)
     boolean dispFlightStats = false;                         //Whether or not the window should be shown (default == off)
-
-//    Movement m = new Movement();
 
     /**
      * Initializes certain variables if needed
@@ -66,14 +67,14 @@ class Calculations {
             flightStats.setLocation(1250, 50);
         }
 
-        if (false) {        //Sets the rocket in pre-set orbit
+        if (false) {        //Sets the rocket in pre-set orbit at beginning of program
             xPos = 0;
             yPos = (pRadius + 100000) * accuracy;
             rXSpeed = 2243 * 1;
             rYSpeed = 0;
         }
 
-        if (false) {        //Sets the rocket in crash course with ground (testing crashes)
+        if (false) {        //Sets the rocket in crash course with ground (testing crashes if needed (not really)
             yPos = (pRadius + 300) * accuracy;
             angle = 180;
             rYSpeed = -1000;
@@ -86,8 +87,7 @@ class Calculations {
      * rocket
      *
      * @param controlsPassThrough An array of values with the positioning and
-     * User Input
-     * @return A second array with the resulting forces acting on the rocket.
+     * User Input. Typically a 1 or a 0 for if the key has been pressed or not.
      */
     public void positionUpdate(int[] controlsPassThrough) {
 
@@ -135,7 +135,7 @@ class Calculations {
         if ((Math.sqrt(Math.pow(xPos / accuracy, 2) + Math.pow(yPos / accuracy, 2))) < pRadius) {   //Checks if the rocket goes underneath the ground (don't change to altitudeToPlanetCenter-will break test cases)
 
             if ((Math.sqrt(Math.pow(rXSpeed * delay, 2) + Math.pow(rYSpeed * delay, 2))) > 6) {     //Checks if it hits it hard enough to blow up. Crash tolerance is 6 m/s
-                startBlowUp = true;                                                                 //Start rocket blowing up sequence in Movement
+                startBlowUp = true;                                                                  //Start rocket blowing up sequence in Movement
             }
 
             //Sets the initial crash angles to prevent inaccuracies between calculations
@@ -232,7 +232,7 @@ class Calculations {
     /**
      * Calculates the force of drag that is acting upon the rocket.
      *
-     * @return
+     * @return Returns the force of drag acting on the rocket
      */
     public double calcD() {
         if (altitudeToPlanetCenter < pAHL) {
@@ -269,7 +269,8 @@ class Calculations {
     /**
      * Rotates the ship to a specified position
      *
-     * @param choice
+     * @param choice The specified direction the user wants the rocket to point
+     * to
      */
     public void rotationControl(int choice) {
 
@@ -378,12 +379,16 @@ class Calculations {
      * than 360.
      *
      * @param angle The angle to see if it needs fixing
-     * @return The fixed angle from 0 < to < 360
+     * @return The fixed angle from 0 to 360
      */
     public double fix(double angle) {
         if (Math.signum(angle) == -1) {
-            return (360 + angle);
-        } else if (angle > 360) {
+            while (angle < 0) {
+                angle += 360;
+            }
+            return angle;
+        }
+        if (angle > 360) {
             return angle % 360;
         }
         return angle;
@@ -415,9 +420,9 @@ class Calculations {
      * Figures out what direction the rocket is traveling in given the X and Y
      * speeds
      *
-     * @param x
-     * @param y
-     * @return
+     * @param x The X component of the direction
+     * @param y The Y component of the direction
+     * @return The angle of the direction of travel
      */
     public static double travelAngle(double x, double y) {
         if (Math.signum(x) == 1 && Math.signum(y) == 1) {
@@ -489,5 +494,4 @@ class Calculations {
         }
 
     }
-
 }

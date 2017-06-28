@@ -11,14 +11,15 @@ import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 
 /**
- *
- * @author cgallinaro
+ * The main class that prepares the window and initializes the separate classes.
+ * @author Brandon
  */
 public class ISU {
 
     static JFrame frame;
-    
+   
     static int setX, setY;
+    static int totalX, totalY;
 
     /**
      * Creates and displays the Movement class Window
@@ -31,8 +32,17 @@ public class ISU {
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        setX = gd.getDisplayMode().getWidth() - 700;
+        setX = gd.getDisplayMode().getWidth() - 400;
         setY = gd.getDisplayMode().getHeight() - 100;
+        if (setX < 1000) {
+            setX = 1000;
+        } 
+        if (setY < 650) {
+            setY = 650;
+        } 
+        
+        totalX = gd.getDisplayMode().getWidth();
+        totalY = gd.getDisplayMode().getHeight();
 
 //        int setX = 700, setY = 700; //Flexible window dimensions
         Movement mvmnt = new Movement();
@@ -73,9 +83,9 @@ public class ISU {
     public static int getScreenSize(char xORy) {
 
         if (xORy == 'x') {
-            return setX;
+            return totalX;
         } else if (xORy == 'y') {
-            return setY;
+            return totalY;
         }
         return 0;
     }

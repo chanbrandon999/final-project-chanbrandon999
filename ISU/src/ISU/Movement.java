@@ -17,9 +17,6 @@ import java.util.Random;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.Timer;
-//import static ISU.Calculations.trigAngle;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -28,7 +25,13 @@ import java.awt.event.WindowEvent;
 import java.awt.geom.Ellipse2D;
 import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 
-class Movement extends JPanel implements ActionListener, MouseWheelListener, MouseListener, MouseMotionListener {
+/**
+ * The movement class is responsible for the output and display of the
+ * components on screen
+ *
+ * @author Brandon
+ */
+public class Movement extends JPanel implements ActionListener, MouseWheelListener, MouseListener, MouseMotionListener {
 
     Timer timer;        //Main timer
     Timer blowUpTimer;       //Timer for blowing up
@@ -134,10 +137,10 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener, Mou
         speedometer.setText("Speed: 0");
 
         //Initializes star positions
-        for (int i = 0; i < stars.length; i++) {
-            stars[i][0] = rand.nextInt(ISU.getScreenSize('x')) * 1;
-            stars[i][1] = rand.nextInt(ISU.getScreenSize('y')) * 1;
-            stars[i][2] = (rand.nextInt(4) + 2);
+        for (double[] star : stars) {
+            star[0] = rand.nextInt(ISU.getScreenSize('x'));
+            star[1] = rand.nextInt(ISU.getScreenSize('y'));
+            star[2] = (rand.nextInt(4) + 2);
         }
 
         //Adds pause menu
@@ -145,6 +148,7 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener, Mou
         pm.addKeyListener(new TAdapter());
         pm.addWindowListener(new WindowAdapter() {
             //Sets window closing action
+            @Override
             public void windowClosing(WindowEvent e) {
                 isPaused = false;
                 timer.start();
@@ -161,7 +165,7 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener, Mou
      * Activated by the timer, it initializes the variables and switches to
      * perform different actions based off user input.
      *
-     * @param e
+     * @param e The action that was performed (timer activation)
      */
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -223,7 +227,7 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener, Mou
     /**
      * Paints all the elements onto the screen
      *
-     * @param g
+     * @param g The graphics object
      */
     @Override
     public void paintComponent(Graphics g) {
@@ -351,28 +355,25 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener, Mou
 
         //Draws the stars 
         g.setColor(Color.white);
-        for (int i = 0; i < stars.length; i++) {
+        for (double[] star : stars) {
             if (blowUp == false) {
-                stars[i][0] += c.rYSpeed / 1000;
-                stars[i][1] -= c.rXSpeed / 1000;
-
-                //Will put stars on the opposite side of the screen if they cross over 
-                if (stars[i][0] > getHeight()) {
-                    stars[i][0] -= getHeight();
-                } else if (stars[i][0] < 0) {
-                    stars[i][0] += getHeight();
+                star[0] += c.rYSpeed / 1000;
+                star[1] -= c.rXSpeed / 1000;
+                //Will put stars on the opposite side of the screen if they cross over
+                if (star[0] > ISU.totalY) {
+                    star[0] -= ISU.totalY;
+                } else if (star[0] < 0) {
+                    star[0] += ISU.totalY;
                 }
-
-                //Will put stars on the opposite side of the screen if they cross over 
-                if (stars[i][1] > getWidth()) {
-                    stars[i][1] -= getWidth();
-                } else if (stars[i][1] < 0) {
-                    stars[i][1] += getWidth();
+                //Will put stars on the opposite side of the screen if they cross over
+                if (star[1] > ISU.totalX) {
+                    star[1] -= ISU.totalX;
+                } else if (star[1] < 0) {
+                    star[1] += ISU.totalX;
                 }
             }
-
             //Draws the star
-            g.fillOval((int) stars[i][1], (int) stars[i][0], (int) stars[i][2], (int) stars[i][2]);
+            g.fillOval((int) star[1], (int) star[0], (int) star[2], (int) star[2]);
         }
 
         //Draws the planet 
@@ -449,7 +450,7 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener, Mou
         //Draws direction of travel angle 
         AffineTransform at2 = new AffineTransform();
         at2.translate(((getWidth() / 2) - arrow2.getWidth() / 2), (getHeight() - arrow2.getHeight()) + 57.5 / 2);           //Moves arrow to spot
-        at2.rotate(Math.toRadians(c.travelAngle(c.rXSpeed, c.rYSpeed)), arrow2.getWidth() / 2, arrow2.getHeight() / 2);     //Rotates arrow based off direction of travel 
+        at2.rotate(Math.toRadians(Calculations.travelAngle(c.rXSpeed, c.rYSpeed)), arrow2.getWidth() / 2, arrow2.getHeight() / 2);     //Rotates arrow based off direction of travel 
         g2d.drawImage(arrow2, at2, this);
 
         //Displays atmospheric pressure scale under altitude box
@@ -492,7 +493,7 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener, Mou
     /**
      * Changes the zoomScale variable to reflect the desired zoom levels.
      *
-     * @param e
+     * @param e The mousewheel event 
      */
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
@@ -681,6 +682,7 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener, Mou
                     timer.stop();
                     isPaused = true;
                     pm.setVisible(true);
+                    pm.addKeyListener(this);
                 } else {
                     isPaused = false;
                     timer.start();
@@ -688,12 +690,7 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener, Mou
             }
 
             if (key == KeyEvent.VK_M) {     //Pressed key M for toggle minimap menu
-
-                if (showMiniMap == false) {
-                    showMiniMap = true;
-                } else {
-                    showMiniMap = false;
-                }
+                showMiniMap = showMiniMap == false;
             }
 
             if (key == KeyEvent.VK_PERIOD) {     //Pressed key PERIOD for increasing time warp
@@ -725,7 +722,6 @@ class Movement extends JPanel implements ActionListener, MouseWheelListener, Mou
 
     }
 
-    
     //Bunch o garbage useless methods I don't need. 
     @Override
     public void mouseEntered(MouseEvent e) {
