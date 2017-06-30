@@ -21,7 +21,7 @@ public class Calculations {
     public double yPos = pRadius * accuracy;       //The position of the rocket in the Y direction (in milimeters)
     public double aSpeed, angle;                                //Initializing the angular throttles (in degrees per 10 milliseconds)
     public double rXSpeed = 0, rYSpeed = 0, sThrottle = 0;      //Setting the rocket speeds in the X and Y directions (meters per second) && Initializing rocket throttle (0 to 1)
-    long rThrust = 1500 * 1000 * 100;                             //Setting the maximum thrust of the rocket (in Newtons)
+    long rThrust = 1500 * 1000 * 1;                             //Setting the maximum thrust of the rocket (in Newtons)
     double pGravity = 9.81;                                     //Setting the strength of gravity at the surface (in m/s^2)
     double pAHL = 670000;                                       //Setting the atmospheric height limit where the atmosphere is no longer simulated (in meters)
     double[][] stars = new double[50][3];                       //Initializes the star array for each of the star positions (in virtual screen position)
